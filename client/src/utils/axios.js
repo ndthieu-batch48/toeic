@@ -1,11 +1,5 @@
 import axios from 'axios';
 
-const params = {
-  headers: {
-    'Content-Type': 'application/json', // Adjust the content type as needed
-  },
-};
-
 export const fetchDataFromApi = async (url, requireAuth = false) => {
   try {
     const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;

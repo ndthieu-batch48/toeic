@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { point_listening, point_reading } from '../../components/Data';
 import { fetchData } from '../../service/UserService';
+
 const RecentResults = () => {
   const [resultsData, setResultsData] = useState([]);
   const [recentResults, setRecentResults] = useState([]);
