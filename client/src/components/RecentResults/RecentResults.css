@@ -1,0 +1,86 @@
+.recent-results {
+    margin: 80px 20px;
+  }
+  .result-cards {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    justify-items: center;
+  }
+  
+  .recent-results .result-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 350px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .recent-results .result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .recent-results  .result-card h3 {
+    font-size: 18px;
+    color: #112143;
+    margin-bottom: 10px;
+  }
+  
+  .recent-results .test-type {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  
+  .recent-results  .full-test {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .recent-results .practice {
+    background-color: #ff9800;
+    color: white;
+  }
+  
+  .recent-results .parts {
+    margin: 10px 0;
+  }
+  
+  .recent-results  .part {
+    display: inline-block;
+    background-color: #f1f1f1;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 5px;
+    font-size: 14px;
+  }
+  
+  .recent-results  p {
+    font-size: 14px;
+    color: #555;
+    margin: 5px 0;
+  }
+  
+  .recent-results .see-all {
+    text-align: right;
+    margin-top: 20px;
+  }
+  
+  .recent-results .see-all a {
+    color: #0004ff8e;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .recent-results  .see-all a:hover {
+    text-decoration: underline;
+  }
+  
+  

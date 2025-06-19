@@ -1,0 +1,74 @@
+.tests-page {
+  display: flex;
+  padding: 50px;
+  /* background-color: #f9f9f9; */
+}
+
+.tests-page .left-section {
+  flex: 3;
+  padding-right: 20px;
+}
+
+.right-section {
+  flex: 1;
+}
+
+.search-bar {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  flex: 1;
+  width: 54px;
+  padding: 9px 16px;
+  border: 1px solid #ddd;
+  border-radius: 50px;
+  font-family: Poppins;
+  font-size: 1.4rem;
+}
+
+.section-title {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: black;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.tests-page .left-section .test-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 cột */
+  gap: 20px;
+  justify-content: center;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.banner img {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.banner p {
+  text-align: center;
+  color: #000000;
+}
+
+@media (max-width: 768px) {
+  .test-list {
+    grid-template-columns: repeat(2, 1fr); /* 2 cột cho màn hình nhỏ */
+  }
+}
+
+@media (max-width: 480px) {
+  .test-list {
+    grid-template-columns: 1fr; /* 1 cột cho màn hình rất nhỏ */
+  }
+}
