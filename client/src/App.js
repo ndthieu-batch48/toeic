@@ -1,14 +1,14 @@
 // src/App.js
-import React, { useState, useEffect } from 'react';
 import './assets/css/reset.css';
 import './assets/css/style.css';
 import './App.css';
 import './../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 
 import Footer from './components/Footer/Footer';
 import Header from './components/Header/Header';
@@ -21,8 +21,6 @@ import HomePage from './pages/HomePage/HomePage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import PracticeTestPage from './pages/PracticeTestPage/PracticeTestPage';
-
-// Import all your page components
 import RegisterPage from './pages/RegisterPage/RegisterPage';
 import ResultPage from './pages/ResultPage/ResultPage';
 import TestDetailPage from './pages/TestDetailPage/TestDetailPage';

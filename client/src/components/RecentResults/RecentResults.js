@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { point_listening, point_reading } from '../../components/Data';
 import { fetchData } from '../../service/UserService';
+import { logAPIError } from '../../utils/logger';
 
 const RecentResults = () => {
   const [resultsData, setResultsData] = useState([]);
@@ -20,15 +21,10 @@ const RecentResults = () => {
     }
     const fetchResults = async () => {
       try {
-        fetchData(`/get_result?user_id=${user.id}`, true)
-          .then((res) => {
-            setResultsData(res);
-          })
-          .catch((error) => {
-            console.log('Fetch fault!');
-          });
+        const res = await fetchData(`/get_result?user_id=${user.id}`, true);
+        setResultsData(res);
       } catch (error) {
-        console.log(error);
+        logAPIError('GET', `/get_result?user_id=${user.id}`, error, null);
       }
     };
     fetchResults();

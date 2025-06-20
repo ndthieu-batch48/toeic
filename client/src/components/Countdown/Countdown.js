@@ -9,7 +9,6 @@ function CountdownTimer({ time, setTime, timeDown }) {
       return () => clearInterval(timer);
     } else if (!timeDown && time !== null) {
       if (time == 0 || timeDown === false) {
-        console.log('timeDown');
         const timer = setInterval(() => {
           setTime((prevTime) => Number(prevTime) + 1);
         }, 1000);
@@ -21,7 +20,7 @@ function CountdownTimer({ time, setTime, timeDown }) {
         return () => clearInterval(timer);
       }
     }
-  }, [time, setTime]);
+  }, [time, setTime, timeDown]);
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);

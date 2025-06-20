@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
+import { AUTH_ERRORS } from '../constants/messages';
 import { updateUser, resetUser } from '../redux/slides/userSlide';
 import { store } from '../redux/store';
+import { getAuthErrorMessage, createError } from '../utils/errorHandler';
+import { logAuth, logAuthError } from '../utils/logger';
 
 export const axiosJWT = axios.create();
 
@@ -13,16 +16,21 @@ export const loginUser = async (data) => {
         'Content-Type': 'application/json',
       },
     });
-    console.log('Login token response:', res.data);
+    logAuth('Login', res.data);
     return res.data;
   } catch (error) {
+    logAuthError('Login', error);
+
     if (error.response) {
-      throw {
-        status: error.response.status,
-        message: error.response.data.message || 'Đã xảy ra lỗi.',
-      };
+      const status = error.response.status;
+      const serverMessage = error.response.data?.message;
+      const errorMessage = serverMessage || getAuthErrorMessage(status);
+
+      throw createError(status, errorMessage, 'auth');
+    } else if (error.request) {
+      throw createError(0, AUTH_ERRORS.NETWORK_ERROR, 'auth'); // Network error
     } else {
-      throw { status: 500, message: 'Không thể kết nối đến máy chủ.' };
+      throw createError(500, AUTH_ERRORS.LOGIN_FAILED, 'auth'); // Other error
     }
   }
 };
@@ -114,8 +122,8 @@ export const logoutUser = async () => {
 
 export const fetchData = async (url, requireAuth = false, options = {}) => {
   const { ignoreErrorCodes = [] } = options;
+  const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;
   try {
-    const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;
     console.log('Calling API:', fullUrl);
     const headers = {
       'Content-Type': 'application/json',

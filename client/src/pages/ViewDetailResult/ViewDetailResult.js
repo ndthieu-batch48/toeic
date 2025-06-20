@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // Dữ liệu chi tiết Part và câu hỏi
-import './ViewDetailResult.css';
+import './ViewDetailResult.css';  
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
@@ -283,35 +283,6 @@ const ViewDetailResult = () => {
       ...prev,
       [questionId]: !prev[questionId],
     }));
-  };
-
-  // Hàm kiểm tra base64 hợp lệ
-  const isValidBase64 = (str) => {
-    try {
-      return (
-        typeof str === 'string' &&
-        str.startsWith('data:image/') &&
-        /^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(str)
-      );
-    } catch (error) {
-      return false;
-    }
-  };
-
-  // Hàm tải ảnh và chuyển thành base64
-  const fetchImageAsBase64 = async (imageUrl) => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
-      });
-    } catch (error) {
-      console.error('Error fetching image:', error);
-      return null;
-    }
   };
 
   // Hàm gọi API để dịch audio_script

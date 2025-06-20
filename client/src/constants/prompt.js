@@ -1,1 +1,0 @@
-const testPromt = 'Hello world';

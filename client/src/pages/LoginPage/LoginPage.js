@@ -1,22 +1,41 @@
+import CircularProgress from '@mui/material/CircularProgress';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './LoginPage.css';
-import CircularProgress from '@mui/material/CircularProgress';
 
+import { FORM_ERRORS, AUTH_SUCCESS } from '../../constants/messages';
 import { useAuth } from '../../context/AuthContext';
 import * as UserService from '../../service/UserService';
+import './LoginPage.css';
+import { logAuthError } from '../../utils/logger';
+import { showError, showSuccess } from '../../utils/showAlert';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+
+  const validateForm = () => {
+    if (!username.trim()) {
+      setError(FORM_ERRORS.REQUIRED_FIELD);
+      return false;
+    }
+    if (!password.trim()) {
+      setError(FORM_ERRORS.REQUIRED_FIELD);
+      return false;
+    }
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!validateForm()) return;
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const res = await UserService.loginUser({ username, password });
       login(
         {
@@ -28,13 +47,13 @@ const LoginPage = () => {
         res.access_token,
         res.refresh_token
       );
-      window.alert('Login Success');
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
+      showSuccess(AUTH_SUCCESS.LOGIN_SUCCESS);
+      navigate('/');
     } catch (error) {
-      console.error('Login fault:', error);
-      window.alert(error.message || 'Đăng nhập thất bại');
+      logAuthError('Login', error);
+      const errorMessage = error.message || error.toString();
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +64,8 @@ const LoginPage = () => {
       <div className="login-form">
         <h2>LOGIN</h2>
         <form onSubmit={handleSubmit}>
+          {error && <div className="error-message">{error}</div>}
+
           <div className="login-form-group">
             <label>Username</label>
             <input
@@ -52,9 +73,11 @@ const LoginPage = () => {
               placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              disabled={isLoading}
               required
             />
           </div>
+
           <div className="login-form-group">
             <label>Password</label>
             <input
@@ -62,15 +85,18 @@ const LoginPage = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
               required
             />
           </div>
+
           <button type="submit" disabled={isLoading} className="login-button">
             {isLoading ? <CircularProgress size={24} /> : 'Login'}
           </button>
         </form>
+
         <p className="login-footer">
-          Don’t have an account? <Link to="/register">Register</Link>
+          Don&apos;t have an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </div>

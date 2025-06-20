@@ -2,14 +2,14 @@ import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 
+import { logError } from '../../utils/logger';
+
 const ProtectedRoute = ({ children }) => {
   const user = useSelector((state) => state.user);
-  console.log('userrrrr', user);
-
   useEffect(() => {
     if (!user.isAuthInitialized) {
       const timeout = setTimeout(() => {
-        console.error('Authentication initialization timed out');
+        logError('Protected route', 'Authentication initialization timed out', null);
         window.location.href = '/login';
       }, 5000); // Timeout sau 5 giây
       return () => clearTimeout(timeout);

@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { FaUserCircle, FaBars } from 'react-icons/fa';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import './Header.css';
 import Logo from '../../assets/logo-removebg-preview.png';
-
-import { FaUserCircle, FaBars } from 'react-icons/fa';
-import { useSelector, useDispatch } from 'react-redux';
-
 import { useAuth } from '../../context/AuthContext';
 import { setIsTestPage } from '../../redux/slides/userSlide';
+import { logInfo } from '../../utils/logger';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -22,13 +21,13 @@ const Header = () => {
   const { logout } = useAuth();
 
   useEffect(() => {
-    console.log('Header Redux state:', user);
+    logInfo('Header', 'Current redux state', user);
     if (location.pathname.includes('/fulltest') || location.pathname.includes('/practice')) {
       dispatch(setIsTestPage(true));
     } else {
       dispatch(setIsTestPage(false));
     }
-  }, [location, dispatch]);
+  }, [location, dispatch, user]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 5);

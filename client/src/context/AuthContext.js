@@ -3,8 +3,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-import { updateUser, resetUser, setAuthInitialized, setAlertBox } from '../redux/slides/userSlide';
+import { AUTH_ERRORS } from '../constants/messages';
+import { updateUser, resetUser, setAuthInitialized } from '../redux/slides/userSlide';
 import * as UserService from '../service/UserService';
+import { logAuth, logAuthError, logError } from '../utils/logger';
+import { showAlert } from '../utils/showAlert';
 import { saveUserToStorage, clearUserFromStorage } from '../utils/userStorage';
 
 const AuthContext = createContext();
@@ -20,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     try {
       return jwtDecode(token);
     } catch (error) {
-      console.error('Invalid token:', error);
+      logAuthError('Decode token', error);
       return null;
     }
   };
@@ -56,14 +59,13 @@ export const AuthProvider = ({ children }) => {
 
       dispatch(updateUser(updatedUserState));
 
-      // Update redux_user in localStorage
-      localStorage.setItem('redux_user', JSON.stringify(updatedUserState));
+      localStorage.setItem('redux_user', JSON.stringify(updatedUserState)); // Update redux_user in localStorage
 
-      showAlert('Token has been successfully refreshed.', false);
+      logAuth('Token refresh successful');
       return data.access_token;
     } catch (error) {
-      console.error('Failed to refresh token:', error);
-      handleAuthFailure('Login session expired. Please log in again.');
+      logAuthError('Token refresh', error);
+      handleAuthFailure(AUTH_ERRORS.TOKEN_EXPIRED);
       throw error;
     }
   };
@@ -72,7 +74,7 @@ export const AuthProvider = ({ children }) => {
     try {
       return await UserService.getDetailsUserById(userId, accessToken);
     } catch (error) {
-      console.warn('Failed to fetch user details:', error);
+      logError('AuthContext', 'Failed to fetch user details', error);
       return null;
     }
   };
@@ -94,16 +96,6 @@ export const AuthProvider = ({ children }) => {
     saveUserToStorage(userData, accessToken, refreshToken);
   };
 
-  const showAlert = (message, isError = false) => {
-    dispatch(
-      setAlertBox({
-        open: true,
-        error: isError,
-        msg: message,
-      })
-    );
-  };
-
   const handleAuthFailure = (message) => {
     showAlert(message, true);
     logout();
@@ -123,7 +115,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const initAuth = async () => {
-    console.log('Starting authentication initialization');
+    logAuth('Starting authentication initialization');
     setIsInitializing(true);
 
     try {
@@ -134,6 +126,7 @@ export const AuthProvider = ({ children }) => {
         if (reduxUser.id && reduxUser.isLoggedIn && !isTokenExpired(reduxUser.access_token)) {
           dispatch(updateUser(reduxUser));
           dispatch(setAuthInitialized(true));
+          logAuth('Quick restore from saved Redux state successful');
           return;
         }
       }
@@ -146,6 +139,7 @@ export const AuthProvider = ({ children }) => {
       if (!accessToken || !refreshToken || !userData) {
         dispatch(resetUser());
         dispatch(setAuthInitialized(true));
+        logAuth('No authentication data found, resetting user');
         return;
       }
 
@@ -154,7 +148,7 @@ export const AuthProvider = ({ children }) => {
       const decoded = decodeToken(accessToken);
 
       if (!decoded || isTokenExpired(accessToken)) {
-        console.log('Token expired, refreshing...');
+        logAuth('Token expired, refreshing...');
         currentAccessToken = await refreshAccessToken();
       }
 
@@ -171,9 +165,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       dispatch(setAuthInitialized(true));
+      logAuth('Authentication initialization completed successfully');
     } catch (error) {
-      console.error('Authentication initialization failed:', error);
-      handleAuthFailure('Session expired. Please log in again.');
+      logAuthError('Authentication initialization', error);
+      handleAuthFailure(AUTH_ERRORS.SESSION_EXPIRED);
     } finally {
       setIsInitializing(false);
     }
@@ -184,7 +179,7 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   }, []);
 
-  // Public API
+  // Public API - removed showAlert from here
   const contextValue = {
     // User state
     user: {
@@ -205,7 +200,6 @@ export const AuthProvider = ({ children }) => {
     // Utility functions
     decodeToken,
     isTokenExpired,
-    showAlert,
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
