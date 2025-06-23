@@ -6,7 +6,6 @@ import { FORM_ERRORS, AUTH_SUCCESS } from '../../constants/messages';
 import { useAuth } from '../../context/AuthContext';
 import * as UserService from '../../service/UserService';
 import './LoginPage.css';
-import { logAuthError } from '../../utils/logger';
 import { showError, showSuccess } from '../../utils/showAlert';
 
 const LoginPage = () => {
@@ -50,8 +49,7 @@ const LoginPage = () => {
       showSuccess(AUTH_SUCCESS.LOGIN_SUCCESS);
       navigate('/');
     } catch (error) {
-      logAuthError('Login', error);
-      const errorMessage = error.message || error.toString();
+      const errorMessage = error.response || error.message || error.toString();
       setError(errorMessage);
       showError(errorMessage);
     } finally {

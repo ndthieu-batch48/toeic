@@ -5,5 +5,8 @@
 @REM host=192.168.34.124  <--- your app local host
 
 @REM Replace it with your terminal-compatible venv activation command 
-source fastapi_venv\Scripts\activate @REM git bash
+source fastapi_venv/Scripts/activate @REM git bash
 uvicorn main:app --host 192.168.34.124 --port 8000 --reload
+
+@REM deactivate
+@REM ./fastapi_venv/Scripts/deactivate.bat 

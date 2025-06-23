@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('redux_user', JSON.stringify(updatedUserState)); // Update redux_user in localStorage
 
-      logAuth('Token refresh successful');
+      logAuth('Refresh token', { message: 'successful' });
       return data.access_token;
     } catch (error) {
       logAuthError('Token refresh', error);
@@ -177,7 +177,7 @@ export const AuthProvider = ({ children }) => {
   // Auto-initialize on mount
   useEffect(() => {
     initAuth();
-  }, []);
+  });
 
   // Public API - removed showAlert from here
   const contextValue = {

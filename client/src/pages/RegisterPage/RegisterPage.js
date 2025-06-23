@@ -1,13 +1,11 @@
 import CircularProgress from '@mui/material/CircularProgress';
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 
+import { setAlertBox } from '../../redux/slides/userSlide';
 import { postData } from '../../service/UserService';
 import './RegisterPage.css';
-
-import { useDispatch } from 'react-redux';
-
-import { setAlertBox } from '../../redux/slides/userSlide';
 
 const RegisterPage = () => {
   const [username, setUserName] = useState('');

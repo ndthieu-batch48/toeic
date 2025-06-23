@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-import { AUTH_ERRORS } from '../constants/messages';
+import { HTTP_STATUS, AUTH_ERRORS } from '../constants/messages';
 import { updateUser, resetUser } from '../redux/slides/userSlide';
 import { store } from '../redux/store';
-import { getAuthErrorMessage, createError } from '../utils/errorHandler';
-import { logAuth, logAuthError } from '../utils/logger';
+import { HttpCustomError, UnexpectedCustomError } from '../utils/errorHandler';
+import { logAPI, logAuth, logAuthError, APP_LOG_CONTEXT, logAPIError } from '../utils/logger';
 
 export const axiosJWT = axios.create();
 
@@ -16,22 +16,12 @@ export const loginUser = async (data) => {
         'Content-Type': 'application/json',
       },
     });
-    logAuth('Login', res.data);
+    logAuth(APP_LOG_CONTEXT.LOGIN, res.data);
     return res.data;
   } catch (error) {
-    logAuthError('Login', error);
-
-    if (error.response) {
-      const status = error.response.status;
-      const serverMessage = error.response.data?.message;
-      const errorMessage = serverMessage || getAuthErrorMessage(status);
-
-      throw createError(status, errorMessage, 'auth');
-    } else if (error.request) {
-      throw createError(0, AUTH_ERRORS.NETWORK_ERROR, 'auth'); // Network error
-    } else {
-      throw createError(500, AUTH_ERRORS.LOGIN_FAILED, 'auth'); // Other error
-    }
+    const formattedError = new HttpCustomError(APP_LOG_CONTEXT.LOGIN, error);
+    logAuthError(APP_LOG_CONTEXT.LOGIN, formattedError);
+    throw formattedError;
   }
 };
 
@@ -42,15 +32,11 @@ export const registerUser = async (data) => {
         'Content-Type': 'application/json',
       },
     });
+    logAuth(APP_LOG_CONTEXT.REGISTER, res.data);
     return res.data;
   } catch (error) {
-    if (error.response) {
-      throw {
-        message: error.response.data?.message || 'Đã xảy ra lỗi.',
-      };
-    } else {
-      throw { status: 500, message: 'Không thể kết nối đến máy chủ.' };
-    }
+    logAuthError(APP_LOG_CONTEXT.REGISTER, error);
+    throw new HttpCustomError(APP_LOG_CONTEXT.REGISTER, error);
   }
 };
 
@@ -58,23 +44,28 @@ export const refreshToken = async () => {
   try {
     const refreshToken = localStorage.getItem('refresh_token');
     if (!refreshToken) {
-      console.error('No refresh token available');
-      throw { status: 401, message: 'No refresh token available' };
+      throw UnexpectedCustomError(APP_LOG_CONTEXT.REFRESH_TOKEN, {
+        code: HTTP_STATUS.NOT_FOUND,
+        message: AUTH_ERRORS.TOKEN_REFRESH_NOT_FOUND,
+      });
     }
-    // Kiểm tra refresh_token có hợp lệ không
+
+    // Validate refresh token
     let decodedRefreshToken;
     try {
       decodedRefreshToken = jwtDecode(refreshToken);
       if (decodedRefreshToken.exp < Date.now() / 1000) {
-        console.error('Refresh token expired');
-        throw { status: 401, message: 'Refresh token expired' };
+        throw UnexpectedCustomError(APP_LOG_CONTEXT.REFRESH_TOKEN, {
+          code: HTTP_STATUS.UNAUTHORIZED,
+          message: AUTH_ERRORS.TOKEN_REFRESH_EXPIRED,
+        });
       }
     } catch (error) {
-      console.error('Invalid refresh token:', error);
-      throw { status: 401, message: 'Invalid refresh token' };
+      logAuthError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
+      throw new HttpCustomError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
     }
 
-    console.log('Calling refresh-token with token:', refreshToken);
+    logAuth(APP_LOG_CONTEXT.REFRESH_TOKEN, { newToken: refreshToken });
     const res = await axios.post(
       `${process.env.REACT_APP_API_URL}/refresh-token`,
       { token: refreshToken },
@@ -84,24 +75,16 @@ export const refreshToken = async () => {
         },
       }
     );
-    console.log('Refresh token response:', res.data);
-    console.log('Stored access_token:', res.data.access_token);
-    console.log('Stored refresh_token:', res.data.refresh_token);
+
+    logAuth(APP_LOG_CONTEXT.REFRESH_TOKEN, { newTokenResponse: res.data });
     localStorage.setItem('access_token', res.data.access_token);
     if (res.data.refresh_token) {
       localStorage.setItem('refresh_token', res.data.refresh_token);
     }
     return res.data;
   } catch (error) {
-    console.error('Refresh token error:', error);
-    if (error.response) {
-      throw {
-        status: error.response.status,
-        message: error.response.data?.detail || 'Failed to refresh token',
-      };
-    } else {
-      throw { status: 500, message: 'Cannot connect to server' };
-    }
+    logAuthError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
+    throw new HttpCustomError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
   }
 };
 
@@ -110,49 +93,50 @@ export const logoutUser = async () => {
     const res = await axios.post(`${process.env.REACT_APP_API_URL}/log-out`);
     return res.data;
   } catch (error) {
-    if (error.response) {
-      throw {
-        message: error.response.data?.message || 'Đã xảy ra lỗi.',
-      };
-    } else {
-      throw { status: 500, message: 'Không thể kết nối đến máy chủ.' };
-    }
+    logAuthError(APP_LOG_CONTEXT.LOGOUT, error);
+    throw new HttpCustomError(APP_LOG_CONTEXT.LOGOUT, error);
   }
 };
 
 export const fetchData = async (url, requireAuth = false, options = {}) => {
   const { ignoreErrorCodes = [] } = options;
   const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;
+
   try {
-    console.log('Calling API:', fullUrl);
     const headers = {
       'Content-Type': 'application/json',
     };
+
     if (requireAuth) {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        throw { status: 401, message: 'Not authenticated' };
+        throw UnexpectedCustomError(APP_LOG_CONTEXT.USER_GET, {
+          code: HTTP_STATUS.UNAUTHORIZED,
+          message: AUTH_ERRORS.TOKEN_REFRESH_EXPIRED,
+        });
       }
       headers['Authorization'] = `Bearer ${token}`;
     }
 
     const instance = requireAuth ? axiosJWT : axios;
-
     const res = await instance.get(fullUrl, { headers });
+    logAPI(APP_LOG_CONTEXT.USER_GET, url, res.status, res.data);
     return res.data;
   } catch (error) {
     if (!ignoreErrorCodes.includes(error.response?.status)) {
-      console.error(`Error fetching ${url}:`, error);
+      logAPIError(APP_LOG_CONTEXT.USER_GET, url, error);
     }
 
-    if (error.response && error.response.status === 401 && requireAuth) {
+    // Handle token refresh for 401 errors with auth
+    if (error.response && error.response.status === HTTP_STATUS.UNAUTHORIZED && requireAuth) {
       try {
         const data = await refreshToken();
         localStorage.setItem('access_token', data.access_token);
         if (data.refresh_token) {
           localStorage.setItem('refresh_token', data.refresh_token);
         }
-        // Cập nhật Redux state
+
+        // Update Redux state
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         store.dispatch(
           updateUser({
@@ -166,7 +150,8 @@ export const fetchData = async (url, requireAuth = false, options = {}) => {
             isLoggedIn: true,
           })
         );
-        // Thử lại yêu cầu với token mới
+
+        // Retry request with new token
         const headers = {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${data.access_token}`,
@@ -176,99 +161,84 @@ export const fetchData = async (url, requireAuth = false, options = {}) => {
         return res.data;
       } catch (refreshError) {
         console.error('Failed to refresh token:', refreshError);
+
+        // Clear auth state and redirect
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
         localStorage.removeItem('redux_user');
         store.dispatch(resetUser());
+
         setTimeout(() => {
           window.location.href = '/login';
         }, 2000);
+
         throw refreshError;
       }
     }
-    if (error.response) {
-      throw {
-        status: error.response.status,
-        message: error.response.data.detail || 'Đã xảy ra lỗi.',
-      };
-    } else {
-      throw { status: 500, message: 'Không thể kết nối đến máy chủ.' };
+
+    // If it's already a structured error, throw it
+    if (error.status && error.message) {
+      throw error;
     }
+
+    throw new HttpCustomError(error);
   }
 };
 
 export const postData = async (url, data, requireAuth = false) => {
   try {
     const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;
-    console.log('Calling API:', fullUrl);
     const headers = {
       'Content-Type': 'application/json',
     };
+
     if (requireAuth) {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        throw { status: 401, message: 'Not authenticated' };
+        throw UnexpectedCustomError(APP_LOG_CONTEXT.USER_POST, {
+          code: HTTP_STATUS.UNAUTHORIZED,
+          message: AUTH_ERRORS.TOKEN_REFRESH_EXPIRED,
+        });
       }
       headers['Authorization'] = `Bearer ${token}`;
     }
+
     const instance = requireAuth ? axiosJWT : axios;
     const res = await instance.post(fullUrl, data, { headers });
-    console.log('Response:', res.data);
+    logAPI(APP_LOG_CONTEXT.USER_POST, url, res.status, res.data);
     return { success: true, data: res.data };
   } catch (error) {
-    console.error(`Error posting ${url}:`, error);
-    if (error.response && error.response.status === 401) {
-      throw { status: 401, message: 'Not authenticated' };
-    }
-    if (error.response && error.response.status === 403) {
-      throw {
-        status: 403,
-        message: 'You do not have permission to perform this action',
-      };
-    }
-    if (error.response) {
-      throw {
-        status: error.response.status,
-        message: error.response.data.detail || 'Đã xảy ra lỗi.',
-      };
-    } else {
-      throw { status: 500, message: 'Không thể kết nối đến máy chủ.' };
-    }
+    logAPIError(APP_LOG_CONTEXT.USER_POST, url, error);
+    throw new HttpCustomError(error);
   }
 };
 
 export const deleteData = async (url, requireAuth = false) => {
   try {
     const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;
-    console.log('Calling API:', fullUrl);
     const headers = {
       'Content-Type': 'application/json',
     };
+
     if (requireAuth) {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        throw { status: 401, message: 'Not authenticated' };
+        throw UnexpectedCustomError(APP_LOG_CONTEXT.USER_DELETE, {
+          code: HTTP_STATUS.UNAUTHORIZED,
+          message: AUTH_ERRORS.TOKEN_REFRESH_EXPIRED,
+        });
       }
       headers['Authorization'] = `Bearer ${token}`;
     }
+
     const instance = requireAuth ? axiosJWT : axios;
     const res = await instance.delete(fullUrl, { headers });
-    console.log('Response:', res.data);
+    logAPI(APP_LOG_CONTEXT.USER_DELETE, url, res.status, res.data);
     return res.data;
   } catch (error) {
-    console.error(`Error deleting ${url}:`, error);
-    if (error.response && error.response.status === 401) {
-      throw { status: 401, message: 'Not authenticated' };
-    }
-    if (error.response) {
-      throw {
-        status: error.response.status,
-        message: error.response.data.detail || 'Đã xảy ra lỗi.',
-      };
-    } else {
-      throw { status: 500, message: 'Không thể kết nối đến máy chủ.' };
-    }
+    logAPIError(APP_LOG_CONTEXT.USER_DELETE, url, error);
+    throw new HttpCustomError(error);
   }
 };
 
@@ -279,11 +249,11 @@ export const getDetailsUserById = async (userId, accessToken) => {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-    console.log('User details response:', res.data);
+    logAPI(APP_LOG_CONTEXT.USER_GET_DETAIL, `users/${userId}`, res.status, res.data);
     return res.data;
   } catch (error) {
-    console.error('Error fetching user details:', error);
-    throw error;
+    logAPIError(APP_LOG_CONTEXT.USER_GET_DETAIL, `users/${userId}`, error);
+    throw new HttpCustomError(error);
   }
 };
 
@@ -291,6 +261,7 @@ axiosJWT.interceptors.request.use(
   async (config) => {
     let storageData = localStorage.getItem('access_token');
     let decoded = {};
+
     if (storageData) {
       try {
         decoded = jwtDecode(storageData);
@@ -309,7 +280,8 @@ axiosJWT.interceptors.request.use(
         if (data.refresh_token) {
           localStorage.setItem('refresh_token', data.refresh_token);
         }
-        // Cập nhật Redux state
+
+        // Update Redux state
         const userData = JSON.parse(localStorage.getItem('user') || '{}');
         store.dispatch(
           updateUser({
@@ -326,16 +298,18 @@ axiosJWT.interceptors.request.use(
       } catch (error) {
         console.error('Failed to refresh token:', error);
 
-        // Xóa trạng thái và chuyển hướng
+        // Clear auth state and redirect
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
         localStorage.removeItem('redux_user');
         store.dispatch(resetUser());
+
         window.location.replace('/login');
         setTimeout(() => {
           window.location.href = '/login';
         }, 2000);
+
         throw error;
       }
     }
