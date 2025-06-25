@@ -1,23 +1,19 @@
+import Pagination from '@mui/material/Pagination';
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import Banner from '../../components/Banner/Banner';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import TestCard from '../../components/TestCard/TestCard';
-
 import './TestPage.css';
-import { useNavigate } from 'react-router-dom';
-
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { fetchData } from '../../service/UserService';
-
-import Pagination from '@mui/material/Pagination';
-import { useDispatch, useSelector } from 'react-redux';
 
 const TestsPage = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  // const context = useContext(MyContext);
   const [testData, setTestData] = useState([]);
   const [filteredTests, setFilteredTests] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);

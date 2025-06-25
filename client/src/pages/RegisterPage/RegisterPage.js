@@ -1,76 +1,44 @@
 import CircularProgress from '@mui/material/CircularProgress';
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 
-import { setAlertBox } from '../../redux/slides/userSlide';
-import { postData } from '../../service/UserService';
+import { useAuth } from '../../context/AuthContext';
+import { useReduxAlert } from '../../hook/useReduxAlert';
 import './RegisterPage.css';
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const { showError, showSuccess } = useReduxAlert();
+  const { register } = useAuth();
   const [username, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const navigate = useNavigate();
-  // const context = useContext(MyContext);
-  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
+
   // Xác nhận đăng ký
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (emailError) {
+      showError(emailError);
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      if (emailError === '') {
-        postData('/register', { username, email, password })
-          .then((res) => {
-            if (res.success) {
-              dispatch(
-                setAlertBox({
-                  open: true,
-                  error: false,
-                  msg: 'Registration successful! Please login.',
-                })
-              );
-              setIsLoading(true);
-              setTimeout(() => {
-                navigate('/login');
-              }, 1000);
-            } else {
-              setIsLoading(false);
-              dispatch(
-                setAlertBox({
-                  open: true,
-                  error: true,
-                  msg: response.errorData?.detail || 'Registration failed.',
-                })
-              );
-            }
-          })
-          .catch((error) => {
-            setIsLoading(false);
-            dispatch(
-              setAlertBox({
-                open: true,
-                error: true,
-                msg: `An error occurred during registration. ${error.message}`,
-              })
-            );
-          });
-      } else {
-        setIsLoading(false);
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: true,
-            msg: emailError,
-          })
-        );
-      }
+      await register({ username, email, password });
+      showSuccess('Registration successful! Please login.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1000);
     } catch (error) {
-      console.log('Post user fault!');
+      const errorMessage = error.message || error.toString(); //error.response ||
+      showError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
+
   const allowedDomains = ['gmail.com', 'tma.com.vn', 'yahoo.com'];
   const handleEmailChange = (e) => {
     const newEmail = e.target.value;
@@ -84,6 +52,7 @@ const RegisterPage = () => {
       setEmailError(`Email must end with one of the following: ${allowedDomains.join(', ')}`);
     }
   };
+
   return (
     <div className="register-container">
       <div className="register-form">

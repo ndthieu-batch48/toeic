@@ -4,10 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { AUTH_ERRORS } from '../constants/messages';
+import { useReduxAlert } from '../hook/useReduxAlert';
 import { updateUser, resetUser, setAuthInitialized } from '../redux/slides/userSlide';
 import * as UserService from '../service/UserService';
 import { logAuth, logAuthError, logError } from '../utils/logger';
-import { showAlert } from '../utils/showAlert';
 import { saveUserToStorage, clearUserFromStorage } from '../utils/userStorage';
 
 const AuthContext = createContext();
@@ -15,6 +15,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { showError } = useReduxAlert();
   const userState = useSelector((state) => state.user);
   const [isInitializing, setIsInitializing] = useState(true);
 
@@ -97,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleAuthFailure = (message) => {
-    showAlert(message, true);
+    showError(message);
     logout();
     setTimeout(() => navigate('/login'), 2000);
   };
@@ -179,7 +180,6 @@ export const AuthProvider = ({ children }) => {
     initAuth();
   });
 
-  // Public API - removed showAlert from here
   const contextValue = {
     // User state
     user: {

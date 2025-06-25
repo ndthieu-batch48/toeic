@@ -15,13 +15,10 @@ import Banner from '../../components/Banner/Banner';
 import { point_listening, point_reading } from '../../components/Data';
 import { fetchData } from '../../service/UserService';
 import './ResultPage.css';
-import { setAlertBox } from '../../redux/slides/userSlide';
-
-import { useDispatch } from 'react-redux';
+import { APP_LOG_CONTEXT, logAPIError } from '../../utils/logger';
 
 const ResultPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [selectedHistory, setSelectedHistory] = useState({});
 
   const { id, resultId } = useParams();
@@ -35,22 +32,16 @@ const ResultPage = () => {
             console.log(res);
             setSelectedHistory(res); // Cập nhật trực tiếp selectedHistory
           } else {
-            dispatch(
-              setAlertBox({
-                open: true,
-                error: true,
-                msg: 'You do not have permission to view this test!',
-              })
-            );
+            showError('You do not have permission to view this test!');
             navigate('/'); // Chuyển về trang chủ nếu không hợp lệ
           }
         });
       } catch (error) {
-        console.log('Fetch result fault!');
+        logAPIError(APP_LOG_CONTEXT.GET, `/generate_result?history_id=${resultId}`, error);
       }
     };
     fetchTests();
-  }, [resultId, dispatch]);
+  }, [resultId]);
 
   const handleBackHomeClick = () => navigate('/');
   const handleViewSolution = () => navigate(`/test/${id}/result/${resultId}/details`);

@@ -1,30 +1,17 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-// Dữ liệu chi tiết Part và câu hỏi
-import './ViewResultUserDo.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import './ViewResultUserDo.css';
 
-import { setAlertBox } from '../../redux/slides/userSlide';
+import { useReduxAlert } from '../../hook/useReduxAlert';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
 
-import { useDispatch, useSelector } from 'react-redux';
-
-// Hiển thị tab Part và Navigation
-const partsData = {
-  'Part 1': { start: 1, end: 6 },
-  'Part 2': { start: 7, end: 31 },
-  'Part 3': { start: 32, end: 70 },
-  'Part 4': { start: 71, end: 100 },
-  'Part 5': { start: 101, end: 130 },
-  'Part 6': { start: 131, end: 146 },
-  'Part 7': { start: 147, end: 200 },
-};
-
 const ViewResultUserDo = () => {
   const navigate = useNavigate();
-  // const context = useContext(MyContext);
+  const { showError, showSuccess } = useReduxAlert();
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [selectedPart, setSelectedPart] = useState('');
@@ -74,13 +61,7 @@ const ViewResultUserDo = () => {
   // Check authentication
   useEffect(() => {
     if (!user.isLoggedIn || !user?.id) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Please login to view test results!',
-        })
-      );
+      showError('Please login to view test results!');
       navigate('/login');
     }
   }, [user.isLoggedIn, user.id, navigate]);
@@ -292,13 +273,7 @@ const ViewResultUserDo = () => {
           if (userHistory) {
             setSelectedHistory(userHistory);
           } else {
-            dispatch(
-              setAlertBox({
-                open: true,
-                error: true,
-                msg: 'You do not have permission to view this test result!',
-              })
-            );
+            showError('You do not have permission to view this test result!');
             navigate('/');
           }
 
@@ -320,22 +295,10 @@ const ViewResultUserDo = () => {
         console.error('Fetch API error:', error);
         if (mounted) {
           if (error.status === 401) {
-            dispatch(
-              setAlertBox({
-                open: true,
-                error: true,
-                msg: 'Please login to view test results!',
-              })
-            );
+            showError('Please login to view test results!');
             navigate('/login');
           } else {
-            dispatch(
-              setAlertBox({
-                open: true,
-                error: true,
-                msg: 'Failed to load test results. Please try again.',
-              })
-            );
+            showError('Failed to load test results. Please try again.');
           }
         }
       } finally {
@@ -374,13 +337,7 @@ const ViewResultUserDo = () => {
           if (history) {
             setSelectedHistory(history); // Cập nhật trực tiếp selectedHistory
           } else {
-            dispatch(
-              setAlertBox({
-                open: true,
-                error: true,
-                msg: 'You do not have permission to view this test!',
-              })
-            );
+            showError('You do not have permission to view this test!');
             navigate('/'); // Chuyển về trang chủ nếu không hợp lệ
           }
         });
@@ -1118,13 +1075,7 @@ const ViewResultUserDo = () => {
       }
       const cleanTranslation = extractTranslationContent(editedTranslations[questionId] || '');
       if (!isValidTranslationContent(cleanTranslation)) {
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: true,
-            msg: 'Bản dịch không hợp lệ hoặc chứa lỗi, không lưu vào cơ sở dữ liệu.',
-          })
-        );
+        showError('Bản dịch không hợp lệ hoặc chứa lỗi, không lưu vào cơ sở dữ liệu.');
         return;
       }
       const payload = {
@@ -1134,13 +1085,7 @@ const ViewResultUserDo = () => {
       };
       const res = await postData('/translate', payload, true);
       if (res.success) {
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: false,
-            msg: 'Bản dịch đã được lưu thành công!',
-          })
-        );
+        showSuccess('Bản dịch đã được lưu thành công!');
         setIsEditingTranslation((prev) => ({
           ...prev,
           [questionId]: false,
@@ -1152,13 +1097,7 @@ const ViewResultUserDo = () => {
         );
       }
     } catch (error) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Lỗi khi lưu bản dịch: ' + error.message,
-        })
-      );
+      showError('Lỗi khi lưu bản dịch: ' + error.message);
     }
   };
 
@@ -1274,22 +1213,10 @@ const ViewResultUserDo = () => {
             )
           );
         });
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: false,
-            msg: 'Lưu lời giải thích thành công!',
-          })
-        );
+        showSuccess('Lưu lời giải thích thành công!');
       }
     } catch (error) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Lỗi khi lưu lời giải thích: ' + error.message,
-        })
-      );
+      showError('Lỗi khi lưu lời giải thích: ' + error.message);
     }
   };
 
@@ -1431,13 +1358,7 @@ const ViewResultUserDo = () => {
       return combinedTranslation;
     } else {
       console.error('Invalid paragraph translation content:', combinedTranslation);
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Bản dịch đoạn văn không hợp lệ, không được lưu.',
-        })
-      );
+      showError('Bản dịch đoạn văn không hợp lệ, không được lưu.');
       return 'Bản dịch không hợp lệ.';
     }
   };
@@ -1456,13 +1377,7 @@ const ViewResultUserDo = () => {
 
       const cleanTranslation = extractTranslationContent(translation || '');
       if (!isValidTranslationContent(cleanTranslation)) {
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: true,
-            msg: 'Bản dịch không hợp lệ hoặc chứa lỗi, không lưu vào cơ sở dữ liệu.',
-          })
-        );
+        showError('Bản dịch không hợp lệ hoặc chứa lỗi, không lưu vào cơ sở dữ liệu.');
         return;
       }
 
@@ -1481,13 +1396,7 @@ const ViewResultUserDo = () => {
         throw new Error(res.error || 'API returned unsuccessful response');
       }
 
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: false,
-          msg: 'Bản dịch đã được lưu thành công!',
-        })
-      );
+      showSuccess('Bản dịch đã được lưu thành công!');
 
       preserveScrollPosition(() => {
         setGroupData((prev) =>
@@ -1502,14 +1411,7 @@ const ViewResultUserDo = () => {
         );
       });
     } catch (error) {
-      console.error('Error saving translation:', error);
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: `Lưu bản dịch thất bại: ${error.message}`,
-        })
-      );
+      showError(`Lưu bản dịch thất bại: ${error.message}`);
     }
   };
 

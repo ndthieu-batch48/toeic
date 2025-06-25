@@ -35,8 +35,9 @@ export const registerUser = async (data) => {
     logAuth(APP_LOG_CONTEXT.REGISTER, res.data);
     return res.data;
   } catch (error) {
-    logAuthError(APP_LOG_CONTEXT.REGISTER, error);
-    throw new HttpCustomError(APP_LOG_CONTEXT.REGISTER, error);
+    const formattedError = new HttpCustomError(APP_LOG_CONTEXT.REGISTER, error);
+    logAuthError(APP_LOG_CONTEXT.REGISTER, formattedError);
+    throw formattedError;
   }
 };
 
@@ -81,6 +82,24 @@ export const refreshToken = async () => {
     if (res.data.refresh_token) {
       localStorage.setItem('refresh_token', res.data.refresh_token);
     }
+    return res.data;
+  } catch (error) {
+    logAuthError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
+    throw new HttpCustomError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
+  }
+};
+
+export const _refreshToken = async (refreshToken) => {
+  try {
+    const res = await axios.post(
+      `${process.env.REACT_APP_API_URL}/refresh-token`,
+      { token: refreshToken },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
     return res.data;
   } catch (error) {
     logAuthError(APP_LOG_CONTEXT.REFRESH_TOKEN, error);
@@ -173,16 +192,12 @@ export const fetchData = async (url, requireAuth = false, options = {}) => {
           window.location.href = '/login';
         }, 2000);
 
-        throw refreshError;
+        const formattedError = new HttpCustomError('FETCHINGGG', refreshError);
+        throw formattedError;
       }
     }
-
-    // If it's already a structured error, throw it
-    if (error.status && error.message) {
-      throw error;
-    }
-
-    throw new HttpCustomError(error);
+    const formattedError = new HttpCustomError('FETCHINGGG', error);
+    throw formattedError;
   }
 };
 

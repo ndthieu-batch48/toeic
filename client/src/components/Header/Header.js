@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 import './Header.css';
 import Logo from '../../assets/logo-removebg-preview.png';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/NewAuthContext';
 import { setIsTestPage } from '../../redux/slides/userSlide';
 import { logInfo } from '../../utils/logger';
 

@@ -7,13 +7,14 @@ import './../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import Footer from './components/Footer/Footer';
 import Header from './components/Header/Header';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/NewAuthContext';
+import { useReduxAlert } from './hook/useReduxAlert';
 import AllUserResultPage from './pages/AllUserResultPage/AllUserResultPage';
 import ChatbotAI from './pages/ChatbotAI/ChatbotAI';
 import FullTestPage from './pages/FullTest/FullTest';
@@ -27,12 +28,11 @@ import TestDetailPage from './pages/TestDetailPage/TestDetailPage';
 import TestPage from './pages/TestPage/TestPage';
 import ViewDetailResult from './pages/ViewDetailResult/ViewDetailResult';
 import ViewResultUserDo from './pages/ViewResultUserDo/ViewResultUserDo';
-import { setAlertBox } from './redux/slides/userSlide';
 
 // App content component (needs to be inside AuthProvider)
 const AppContent = () => {
-  const dispatch = useDispatch();
   const userState = useSelector((state) => state.user);
+  const { closeAlert } = useReduxAlert();
   const { isAuthInitialized, isInitializing } = useAuth();
   const [showScrollButton, setShowScrollButton] = useState(false);
 
@@ -41,7 +41,7 @@ const AppContent = () => {
   // Alert handling
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') return;
-    dispatch(setAlertBox({ open: false, msg: '', error: false }));
+    closeAlert();
   };
 
   // Scroll handling

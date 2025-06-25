@@ -1,5 +1,3 @@
-// userStorage.js
-
 export const saveUserToStorage = (user, accessToken, refreshToken) => {
   const userData = {
     id: user.id,

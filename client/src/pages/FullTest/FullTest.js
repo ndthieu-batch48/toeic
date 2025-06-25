@@ -1,22 +1,20 @@
-import CircularProgress from '@mui/material/CircularProgress';
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-
-import CountdownTimer from '../../components/Countdown/Countdown';
-import { fetchData, postData } from '../../service/UserService';
-import './FullTest.css';
-import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
-
-import { useSelector, useDispatch } from 'react-redux';
-
-import { setAlertBox } from '../../redux/slides/userSlide';
-
 import { faPlus, faMinus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import CircularProgress from '@mui/material/CircularProgress';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+
+import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
+import CountdownTimer from '../../components/Countdown/Countdown';
+import { useReduxAlert } from '../../hook/useReduxAlert';
+import { fetchData, postData } from '../../service/UserService';
+import './FullTest.css';
 
 const FullTestPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { showError, showSuccess } = useReduxAlert();
   const user = useSelector((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPart, setSelectedPart] = useState('Part 1');
@@ -42,13 +40,7 @@ const FullTestPage = () => {
   // Kiểm tra đăng nhập
   useEffect(() => {
     if (!user.isLoggedIn) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Please login to take the test!',
-        })
-      );
+      showError('Please login to take the test!');
       navigate('/login');
     }
   }, [user.isLoggedIn, navigate, dispatch]);
@@ -187,22 +179,10 @@ const FullTestPage = () => {
       } catch (error) {
         console.error('Fetch API fault:', error);
         if (error.status === 401) {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Please login to take the test!',
-            })
-          );
+          showError('Please login to take the test!');
           navigate('/login');
         } else {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Failed to load test data.',
-            })
-          );
+          showError('Failed to load test data.');
         }
       } finally {
         setIsLoading(false);
@@ -698,13 +678,7 @@ const FullTestPage = () => {
           const resultId = res?.data.id;
           sessionStorage.setItem('hasSubmitted', 'true');
           setIsLoading(true);
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: false,
-              msg: 'Submit success',
-            })
-          );
+          showSuccess('Submit success');
           localStorage.removeItem(`testTime-${id}`);
           localStorage.removeItem(`testProgress-${id}`);
           sessionStorage.removeItem(`testSession-${id}`);
@@ -713,25 +687,12 @@ const FullTestPage = () => {
           }, 1000);
         } else {
           setIsLoading(false);
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: res?.errorData.detail,
-            })
-          );
+          showError(`${res?.errorData.detail}`);
         }
       }
     } catch (error) {
       setIsLoading(false);
-      console.error('Submit error:', error);
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Failed to submit test.',
-        })
-      );
+      showError(`Failed to submit test with error: ${error}.`);
     }
   };
 

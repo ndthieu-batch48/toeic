@@ -1,6 +1,6 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
 import './assets/css/reset.css';
 import './assets/css/style.css';
 import './index.css';
@@ -9,7 +9,6 @@ import { Provider } from 'react-redux';
 import App from './App';
 import { store } from './redux/store.js';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import reportWebVitals from "./reportWebVitals";
 // import "@fontsource/poppins/400.css";
 // import "@fontsource/poppins/500.css";
@@ -28,11 +27,9 @@ const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  // <React.StrictMode>
   <QueryClientProvider client={queryClient}>
     <Provider store={store}>
       <App />
-      {/* </React.StrictMode> */}
     </Provider>
   </QueryClientProvider>
 );

@@ -3,18 +3,19 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { FORM_ERRORS, AUTH_SUCCESS } from '../../constants/messages';
-import { useAuth } from '../../context/AuthContext';
-import * as UserService from '../../service/UserService';
+import { useAuth } from '../../context/NewAuthContext';
+import { useReduxAlert } from '../../hook/useReduxAlert';
+// import * as UserService from '../../service/UserService';
 import './LoginPage.css';
-import { showError, showSuccess } from '../../utils/showAlert';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const { showSuccess, showError } = useReduxAlert();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
 
   const validateForm = () => {
     if (!username.trim()) {
@@ -35,17 +36,7 @@ const LoginPage = () => {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      const res = await UserService.loginUser({ username, password });
-      login(
-        {
-          id: res.id,
-          username: res.username,
-          email: res.email,
-          role: res.role,
-        },
-        res.access_token,
-        res.refresh_token
-      );
+      await login({ username, password });
       showSuccess(AUTH_SUCCESS.LOGIN_SUCCESS);
       navigate('/');
     } catch (error) {

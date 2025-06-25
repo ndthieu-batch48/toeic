@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // Dữ liệu chi tiết Part và câu hỏi
-import './ViewDetailResult.css';  
+import './ViewDetailResult.css';
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';

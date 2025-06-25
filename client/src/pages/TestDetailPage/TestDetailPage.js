@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import PartSelection from '../../components/TestDetail/PartSelection';
 import TabNavigation from '../../components/TestDetail/TabNavigation';
 import TestInfo from '../../components/TestDetail/TestInfo';
-
-import './TestDetailPage.css';
-import { useNavigate, useParams } from 'react-router-dom';
-
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { fetchData, deleteData } from '../../service/UserService';
-
-import { useDispatch, useSelector } from 'react-redux';
+import './TestDetailPage.css';
+import { logError } from '../../utils/logger';
 
 const TestDetailPage = () => {
   const navigate = useNavigate();
@@ -23,7 +21,7 @@ const TestDetailPage = () => {
   const { id } = useParams();
 
   // Lấy dữ liệu từ api
-  const [testData, setTestData] = useState([]);
+  // const [testData, setTestData] = useState([]);
   const [partData, setPartData] = useState([]);
   const [testPartData, setTestPartData] = useState([]);
   const [testInfo, setTestInfo] = useState({});
@@ -32,22 +30,9 @@ const TestDetailPage = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (!user.isLoggedIn) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Please login to view test details!',
-        })
-      );
-      navigate('/login');
-      return;
-    }
-
     const fetchAPI = async () => {
       try {
         const tests = await fetchData('/tests');
-        setTestData(tests);
         setTestInfo(tests.find((test) => test.id === Number(id)));
 
         const parts = await fetchData('/part', true);
@@ -56,25 +41,7 @@ const TestDetailPage = () => {
         const testParts = await fetchData('/testpart');
         setTestPartData(testParts);
       } catch (error) {
-        console.log('Fetch api fault:', error);
-        if (error.status === 401) {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Please login to view test details!',
-            })
-          );
-          navigate('/login');
-        } else {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Failed to load test data.',
-            })
-          );
-        }
+        logError('TEST DETAIL PAGE', 'LOGGGG', error);
       }
     };
     fetchAPI();
@@ -97,10 +64,6 @@ const TestDetailPage = () => {
       setInitialParts(newParts); // Lưu trạng thái ban đầu
     }
   }, [testPartData, partData, id]);
-
-  useEffect(() => {
-    console.log(parts);
-  }, [parts]);
 
   // Chọn phần để thi thử
   const handlePartSelect = (id) => {
@@ -350,14 +313,14 @@ const TestDetailPage = () => {
 
   return (
     <div className="test-details">
-      <TestInfo {...testInfo} />
+      {testInfo && <TestInfo {...testInfo} />}
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       {activeTab === 'practice' && (
         <div>
           <PartSelection parts={parts} onSelect={handlePartSelect} />
           <div className="form-group">
             <label className="label" htmlFor="time_limit">
-              Time Limit( Don't choose unless you want to set):{' '}
+              Time Limit( Don&apos;t choose unless you want to set):{' '}
             </label>
             <select
               name="time_limit"

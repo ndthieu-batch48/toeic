@@ -1,20 +1,18 @@
+import { faCaretDown, faPlus, faMinus, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import CircularProgress from '@mui/material/CircularProgress';
 import { get, set } from 'idb-keyval';
 import React, { useState, useEffect, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import CountdownTimer from '../../components/Countdown/Countdown';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { deleteData, fetchData, postData } from '../../service/UserService';
-
 import './PracticeTestPage.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faPlus, faMinus, faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const PracticeTestPage = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { isLoggedIn, id: userId } = useSelector((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPart, setSelectedPart] = useState('');
@@ -2458,12 +2456,7 @@ const PracticeTestPage = () => {
         }
       }
     } catch (error) {
-      console.log('Submit fault:', error);
-      context.setAlertBox({
-        open: true,
-        error: true,
-        msg: 'Failed to submit. Please try again.',
-      });
+      showError('Failed to submit. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -14,6 +14,7 @@ const initialState = {
   isTestPage: false,
   alertBox: {
     msg: '',
+    type: '',
     error: false,
     open: false,
   },
@@ -42,7 +43,6 @@ export const userSlice = createSlice({
       state.access_token = access_token;
       state.refresh_token = refresh_token;
       state.role = role;
-      // state.isLoggedIn = !!access_token;
       state.isLoggedIn = isLoggedIn;
       state.isStudent = isStudent;
       state.isAuthInitialized = isAuthInitialized;
@@ -69,7 +69,18 @@ export const userSlice = createSlice({
       state.isTestPage = action.payload;
     },
     setAlertBox: (state, action) => {
-      state.alertBox = action.payload;
+      state.alertBox = { ...state.alertBox, ...action.payload };
+    },
+    closeAlertBox: (state) => {
+      state.alertBox.open = false;
+    },
+    resetAlertBox: (state) => {
+      state.alertBox = {
+        msg: '',
+        type: '',
+        error: false,
+        open: false,
+      };
     },
     setAuthInitialized: (state, action) => {
       state.isAuthInitialized = action.payload;
@@ -84,6 +95,8 @@ export const {
   setDetailUser,
   setIsTestPage,
   setAlertBox,
+  closeAlertBox,
+  resetAlertBox,
   setAuthInitialized,
 } = userSlice.actions;
 export default userSlice.reducer;
