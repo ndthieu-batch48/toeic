@@ -1,24 +1,26 @@
 import {
   faCheck,
-  faPenToSquare,
-  faClock,
   faCircleCheck,
-  faCircleXmark,
   faCircleExclamation,
+  faCircleXmark,
+  faClock,
   faLightbulb,
+  faPenToSquare,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Banner from '../../components/Banner/Banner';
 import { point_listening, point_reading } from '../../components/Data';
+import { useReduxAlert } from '../../hook/useReduxAlert';
 import { fetchData } from '../../service/UserService';
-import './ResultPage.css';
 import { APP_LOG_CONTEXT, logAPIError } from '../../utils/logger';
+import './ResultPage.css';
 
 const ResultPage = () => {
   const navigate = useNavigate();
+  const { showError } = useReduxAlert();
   const [selectedHistory, setSelectedHistory] = useState({});
 
   const { id, resultId } = useParams();

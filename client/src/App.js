@@ -1,14 +1,14 @@
 // src/App.js
+import './../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 import './assets/css/reset.css';
 import './assets/css/style.css';
-import './App.css';
-import './../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import Footer from './components/Footer/Footer';
 import Header from './components/Header/Header';

@@ -2,7 +2,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/NewAuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import './RegisterPage.css';
 

@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-import { HTTP_STATUS, AUTH_ERRORS } from '../constants/messages';
-import { updateUser, resetUser } from '../redux/slides/userSlide';
+import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
+import { resetUser, updateUser } from '../redux/slides/userSlide';
 import { store } from '../redux/store';
 import { HttpCustomError, UnexpectedCustomError } from '../utils/errorHandler';
-import { logAPI, logAuth, logAuthError, APP_LOG_CONTEXT, logAPIError } from '../utils/logger';
+import { APP_LOG_CONTEXT, logAPI, logAPIError, logAuth, logAuthError } from '../utils/logger';
 
 export const axiosJWT = axios.create();
 

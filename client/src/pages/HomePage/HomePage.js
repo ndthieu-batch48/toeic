@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-
-import HomeSlideBanner from '../../components/HomeSlideBanner/HomeSlideBanner';
-import TestCard from '../../components/TestCard/TestCard';
-
-import './HomePage.css';
+import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+import HomeSlideBanner from '../../components/HomeSlideBanner/HomeSlideBanner';
 import RecentResults from '../../components/RecentResults/RecentResults';
+import TestCard from '../../components/TestCard/TestCard';
 import { fetchData } from '../../service/UserService';
 
-import { useSelector } from 'react-redux';
+import './HomePage.css';
 
 const HomePage = () => {
   const [testData, setTestData] = useState([]);

@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-import { HTTP_STATUS, AUTH_ERRORS } from '../constants/messages';
+import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
 import { HttpCustomError, UnexpectedCustomError } from '../utils/errorHandler';
-import { logAPI, logAPIError, APP_LOG_CONTEXT } from '../utils/logger';
+import { APP_LOG_CONTEXT, logAPI, logAPIError } from '../utils/logger';
 
 export const fetchDataFromApi = async (url, requireAuth = false) => {
   const fullUrl = `${process.env.REACT_APP_API_URL}${url}`;

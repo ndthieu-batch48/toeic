@@ -1,14 +1,14 @@
 import Pagination from '@mui/material/Pagination';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import Banner from '../../components/Banner/Banner';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import TestCard from '../../components/TestCard/TestCard';
-import './TestPage.css';
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { fetchData } from '../../service/UserService';
+import './TestPage.css';
 
 const TestsPage = () => {
   const navigate = useNavigate();

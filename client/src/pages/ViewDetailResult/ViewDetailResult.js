@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
-// Dữ liệu chi tiết Part và câu hỏi
-import './ViewDetailResult.css';
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
-
-import { useDispatch, useSelector } from 'react-redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import './ViewDetailResult.css';
 
 // Hiển thị tab Part và Navigation
 const partsData = {

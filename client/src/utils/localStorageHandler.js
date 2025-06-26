@@ -102,7 +102,7 @@ export const saveLocalReduxUser = (userState) => setStorageJSON(STORAGE_KEYS.RED
  * @param {string} refreshToken - Refresh token (optional)
  * @returns {boolean} Success status
  */
-export const setTokens = (accessToken, refreshToken = null) => {
+export const saveTokens = (accessToken, refreshToken = null) => {
   const accessSuccess = saveAccessToken(accessToken);
   const refreshSuccess = refreshToken ? saveRefreshToken(refreshToken) : true;
   return accessSuccess && refreshSuccess;
@@ -134,27 +134,27 @@ export const clearAuthStorage = () => {
 
 /**
  * Save complete user session to storage
- * @param {object} userData - User data object
- * @param {string} accessToken - Access token
- * @param {string} refreshToken - Refresh token
+ * @param {object} userData - Complete user response WITH tokens
  * @returns {boolean} Success status
  */
-export const saveUserSession = (userData, accessToken, refreshToken) => {
-  const userState = {
+export const saveUserSession = (userData) => {
+  const { access_token, refresh_token, ...userDataWithoutTokens } = userData;
+
+  const reduxUserState = {
     id: userData.id,
     userName: userData.username,
     userEmail: userData.email || '',
     role: userData.role,
     isStudent: userData.role === 'student',
-    access_token: accessToken,
-    refresh_token: refreshToken,
+    access_token: access_token,
+    refresh_token: refresh_token,
     isLoggedIn: true,
   };
 
   const results = [
-    saveLocalUserData(userData),
-    setTokens(accessToken, refreshToken),
-    saveLocalReduxUser(userState),
+    saveLocalUserData(userDataWithoutTokens),
+    saveTokens(access_token, refresh_token),
+    saveLocalReduxUser(reduxUserState),
   ];
 
   return results.every((result) => result === true);
