@@ -40,22 +40,6 @@ export const getTokenExpiration = (token) => {
 };
 
 /**
- * Check if token will expire within specified minutes
- * @param {string} token - JWT token
- * @param {number} minutes - Minutes threshold (default: 5)
- * @returns {boolean} True if token expires soon
- */
-export const isTokenExpiringSoon = (token, minutes = 5) => {
-  const decoded = decodeToken(token);
-  if (!decoded?.exp) return true;
-
-  const expirationTime = decoded.exp * 1000;
-  const thresholdTime = Date.now() + minutes * 60 * 1000;
-
-  return expirationTime <= thresholdTime;
-};
-
-/**
  * Validate token structure and required fields
  * @param {string} token - JWT token
  * @param {string[]} requiredFields - Required fields in token payload

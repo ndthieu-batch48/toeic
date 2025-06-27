@@ -1,8 +1,8 @@
 import CircularProgress from '@mui/material/CircularProgress';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { FORM_ERRORS, AUTH_SUCCESS } from '../../constants/messages';
+import { AUTH_SUCCESS, FORM_ERRORS } from '../../constants/messages';
 import { useAuth } from '../../context/NewAuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 // import * as UserService from '../../service/UserService';
@@ -40,9 +40,8 @@ const LoginPage = () => {
       showSuccess(AUTH_SUCCESS.LOGIN_SUCCESS);
       navigate('/');
     } catch (error) {
-      const errorMessage = error.response || error.message || error.toString();
-      setError(errorMessage);
-      showError(errorMessage);
+      setError(error.message);
+      showError(error.message);
     } finally {
       setIsLoading(false);
     }

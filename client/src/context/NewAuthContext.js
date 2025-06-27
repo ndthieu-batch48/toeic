@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AUTH_ERRORS } from '../constants/messages';
 import { useReduxAlert } from '../hook/useReduxAlert';
 import { useReduxUser } from '../hook/useReduxUser';
+import * as AuthService from '../service/AuthService';
+import { getValidRefreshTokenHelper } from '../service/AuthService';
 import * as UserService from '../service/UserService';
 import { decodeToken, isTokenExpired } from '../utils/jwtHandler';
 import * as LocalStorage from '../utils/localStorageHandler';
@@ -25,12 +27,16 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = async () => {
     try {
-      //TODO: Get the previous refresh token from local storage. If not found throw error
-      //TODO: If found, validate if refresh_token expired. If expire throw error
-      const data = await UserService._refreshToken();
-      if (!data) return;
-      const { access_token, refresh_token } = data;
-      return { access_token, refresh_token };
+      const refreshToken = getValidRefreshTokenHelper();
+
+      const tokenData = await AuthService.refreshTokenService(refreshToken);
+      LocalStorage.saveTokens(tokenData.access_token, tokenData.refresh_token);
+      logAuth(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Access token refreshed');
+
+      return {
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
+      };
     } catch (error) {
       logAuthError(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Token refresh failed', error);
       throw error;
@@ -48,14 +54,9 @@ export const AuthProvider = ({ children }) => {
 
   // Main authentication functions
   const login = async ({ username, password }) => {
-    try {
-      const userResponse = await UserService.loginUser({ username, password });
-      updateReduxUser(userResponse);
-      LocalStorage.saveUserSession(userResponse);
-    } catch (error) {
-      logError(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Login failed', error);
-      throw error;
-    }
+    const userResponse = await UserService.loginUser({ username, password });
+    updateReduxUser(userResponse);
+    LocalStorage.saveUserSession(userResponse);
   };
 
   const register = async ({ username, email, password }) => {

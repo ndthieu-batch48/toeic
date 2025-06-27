@@ -1,14 +1,14 @@
 import { jwtDecode } from 'jwt-decode';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { AUTH_ERRORS } from '../constants/messages';
 import { useReduxAlert } from '../hook/useReduxAlert';
-import { updateUser, resetUser, setAuthInitialized } from '../redux/slides/userSlide';
+import { resetUser, setAuthInitialized, updateUser } from '../redux/slides/userSlide';
 import * as UserService from '../service/UserService';
 import { logAuth, logAuthError, logError } from '../utils/logger';
-import { saveUserToStorage, clearUserFromStorage } from '../utils/userStorage';
+import { clearUserFromStorage, saveUserToStorage } from '../utils/userStorage';
 
 const AuthContext = createContext();
 

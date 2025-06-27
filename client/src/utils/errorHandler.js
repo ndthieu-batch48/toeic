@@ -1,51 +1,44 @@
-export class HttpCustomError extends Error {
-  constructor(context, error) {
-    const fallbackMessage =
-      error?.response?.data?.detail ||
-      error?.response?.data?.message ||
-      error?.message ||
-      'An unknown HTTP error occurred';
+import {
+  AXIOS_ERROR_CODES,
+  COMMON_ERRORS,
+  getHttpErrorMessageByCode,
+  getHttpErrorMessageByStatus,
+} from '../constants/messages';
 
+export const formatAxiosError = (error) => {
+  // 👉 Case 1: Network Error (no response object from server)
+  if (!error.response) {
+    if (error.code === AXIOS_ERROR_CODES.NETWORK) {
+      return {
+        message: getHttpErrorMessageByCode(error.code),
+        code: error.code,
+      };
+    }
+
+    return {
+      message: COMMON_ERRORS.UNKNOWN_ERROR,
+      code: error.code || 'UNKNOWN_ERROR',
+    };
+  }
+
+  // 👉 Case 2: HTTP Error (with response)
+  const status = error.response.status || error.status;
+  return {
+    message: getHttpErrorMessageByStatus(status),
+    status: status,
+  };
+};
+
+export class AppError extends Error {
+  constructor(context, error) {
+    const fallbackMessage = error?.message || COMMON_ERRORS.UNKNOWN_ERROR;
     super(fallbackMessage);
 
     this.context = context;
-    this.name = 'HttpError';
-    this.stack = error?.stack || new Error().stack;
-    this.code = error?.code;
+    this.name = error?.name || 'AppError';
     this.message = fallbackMessage;
-
-    if (error?.response) {
-      this.status = error.response.status;
-      this.statusText = error.response.statusText;
-      this.response = error.response.data?.detail || error.response.data || null;
-    }
-
-    if (error?.config) {
-      this.url = error.config.url;
-      this.method = error.config.method;
-      this.data = error.config.data;
-    }
-
-    this.raw = error;
-  }
-
-  getDisplayMessage() {
-    return this.message || 'Unexpected HTTP error';
-  }
-}
-export class UnexpectedCustomError extends Error {
-  constructor(context, error) {
-    const fallbackMessage = error?.message || 'An unknown error occurred';
-    super(fallbackMessage);
-
-    this.context = context;
-    this.name = error?.name || 'UnexpectedError';
+    this.status = error?.status || '404';
     this.stack = error?.stack || new Error().stack;
     this.raw = error;
-    this.message = fallbackMessage;
-  }
-
-  getDisplayMessage() {
-    return this.message || 'Something went wrong';
   }
 }

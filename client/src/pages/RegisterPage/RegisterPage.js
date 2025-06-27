@@ -1,7 +1,9 @@
 import CircularProgress from '@mui/material/CircularProgress';
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
+import { ALLOWED_DOMAINS } from '../../constants/allowedDomains';
+import { AUTH_SUCCESS } from '../../constants/messages';
 import { useAuth } from '../../context/NewAuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import './RegisterPage.css';
@@ -27,19 +29,18 @@ const RegisterPage = () => {
     setIsLoading(true);
     try {
       await register({ username, email, password });
-      showSuccess('Registration successful! Please login.');
+      showSuccess(AUTH_SUCCESS.REGISTER_SUCCESS);
       setTimeout(() => {
         navigate('/login');
       }, 1000);
     } catch (error) {
-      const errorMessage = error.message || error.toString(); //error.response ||
-      showError(errorMessage);
+      showError(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const allowedDomains = ['gmail.com', 'tma.com.vn', 'yahoo.com'];
+  const allowedDomains = [ALLOWED_DOMAINS.GMAIL, ALLOWED_DOMAINS.YAHOO, ALLOWED_DOMAINS.TMA];
   const handleEmailChange = (e) => {
     const newEmail = e.target.value;
     setEmail(newEmail);

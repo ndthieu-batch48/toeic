@@ -1,6 +1,6 @@
 import log from 'loglevel';
 
-import { HttpCustomError, UnexpectedCustomError } from '../utils/errorHandler';
+import { AppError, formatAxiosError } from '../utils/errorHandler';
 
 log.setLevel('TRACE');
 
@@ -45,53 +45,35 @@ function formatData(data) {
   return { value: String(data) }; // For other types (number, boolean, etc.), convert to string
 }
 
-// Helper function to infer the caller => Return the function/class/component name
-const inferCallerContext = () => {
-  const err = new Error();
-  const stack = err.stack?.split('\n') || [];
-  const callerLine = stack[3] || stack[2] || '';
-  const match = callerLine.match(/at\s+(.*)\s+\(/);
-  return match ? match[1] : 'UnknownContext';
-};
-
 export function logInfo(context, message, data) {
-  context = context ?? inferCallerContext(); // If no context is provided, pass the caller name
-
   const formattedData = formatData(data);
   log.info(`[INFO] [${context}] ${message}`, formattedData);
 }
 
 export function logError(context, message, error) {
-  context = context ?? inferCallerContext();
-
   if (!error) {
-    log.error(`[ERROR] [${context}] ${message}`);
     return;
   }
 
-  // Handle custom error classes (HttpCustomError, UnexpectedCustomError)
-  if (error instanceof HttpCustomError) {
+  if (error instanceof AppError) {
     log.error(`[ERROR] [${context}] ${message}`, {
       context: error.context,
       name: error.name,
-      stack: error.stack,
-      code: error.code,
-      status: error.status,
-      statusText: error.statusText,
       message: error.message,
-      url: error.url,
-      method: error.method,
-      data: error.data,
-      response: error.response,
+      status: error.status,
+      stack: error.stack,
       raw: error.raw,
     });
-  } else if (error instanceof UnexpectedCustomError) {
+  } else if (error.code || error.response || error.request) {
+    // Handle Axios errors using formatAxiosError
+    const formattedError = formatAxiosError(error);
     log.error(`[ERROR] [${context}] ${message}`, {
-      name: error.name,
-      message: error.message,
-      context: error.context,
+      name: 'AxiosError',
+      message: formattedError.message,
+      status: formattedError.status,
+      code: formattedError.code,
       stack: error.stack,
-      raw: error.raw,
+      raw: error,
     });
   } else {
     // Handle standard Error objects and other error types
@@ -99,7 +81,7 @@ export function logError(context, message, error) {
       name: error.name || 'Error',
       message: error.message || String(error),
       stack: error.stack,
-      ...error, // Spread any additional properties
+      ...error,
     });
   }
 }
@@ -114,8 +96,7 @@ export function logWarn(context, message, data) {
   log.warn(`[WARN] [${context}] ${message}`, formattedData);
 }
 
-// Logger for specific cases
-
+// Auth-specific logging
 export function logAuth(action, data) {
   const formattedData = formatData(data);
   logInfo('AUTH', `${action}`, formattedData);
