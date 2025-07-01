@@ -7,17 +7,23 @@ export const useReduxUser = () => {
   const userState = useSelector((state) => state.user);
 
   const updateReduxUser = (userData) => {
-    const userState = {
-      id: userData.id,
-      userName: userData.username,
-      userEmail: userData.email || '',
-      role: userData.role,
-      isStudent: userData.role === 'student',
-      access_token: userData.access_token,
-      refresh_token: userData.refresh_token,
-      isLoggedIn: true,
-    };
-    dispatch(updateUser(userState));
+    try {
+      const userState = {
+        id: userData.id,
+        userName: userData.username,
+        userEmail: userData.email || '',
+        role: userData.role,
+        isStudent: userData.role === 'student',
+        access_token: userData.access_token,
+        refresh_token: userData.refresh_token,
+        isLoggedIn: true,
+      };
+      dispatch(updateUser(userState));
+      return true;
+    } catch (err) {
+      console.error('Failed to update user state:', err);
+      return false;
+    }
   };
 
   const updateReduxUserToken = (accessToken, refreshToken) => {

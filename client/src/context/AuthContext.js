@@ -8,7 +8,7 @@ import { useReduxAlert } from '../hook/useReduxAlert';
 import { resetUser, setAuthInitialized, updateUser } from '../redux/slides/userSlide';
 import * as UserService from '../service/UserService';
 import { logAuth, logAuthError, logError } from '../utils/logger';
-import { clearUserFromStorage, saveUserToStorage } from '../utils/userStorage';
+// import { clearUserFromStorage, saveUserToStorage } from '../utils/userStorage';
 
 const AuthContext = createContext();
 
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     dispatch(updateUser(userState));
-    saveUserToStorage(userData, accessToken, refreshToken);
+    // saveUserToStorage(userData, accessToken, refreshToken);
   };
 
   const handleAuthFailure = (message) => {
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     dispatch(resetUser());
-    clearUserFromStorage();
+    // clearUserFromStorage();
     navigate('/login');
   };
 

@@ -53,14 +53,14 @@ export const AuthProvider = ({ children }) => {
 
   // Main authentication functions
   const login = async ({ username, password }) => {
-    const userResponse = await UserService.loginUser({ username, password });
+    const userResponse = await AuthService.loginUser({ username, password });
     updateReduxUser(userResponse);
     LocalStorage.saveUserSession(userResponse);
   };
 
   const register = async ({ username, email, password }) => {
     try {
-      const res = await UserService.registerUser({ username, email, password });
+      const res = await AuthService.registerUser({ username, email, password });
       return res.message; // Follow response structure
     } catch (error) {
       logService.logAuthError('Register', error);
