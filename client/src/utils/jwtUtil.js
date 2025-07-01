@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 
-import { logAuthError } from './logger';
+import { logAuthError } from '../log/logger';
 
 /**
  * Decode JWT token safely

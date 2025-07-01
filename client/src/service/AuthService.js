@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
-import { AppError, formatAxiosError } from '../utils/errorHandler';
-import { isTokenExpired, validateToken } from '../utils/jwtHandler';
-import { getAccessToken, getRefreshToken, saveTokens } from '../utils/localStorageHandler';
-import { APP_LOG_CONTEXT, logAuth, logAuthError } from '../utils/logger';
+import { APP_LOG_CONTEXT, logAuth, logAuthError } from '../log/logger';
+import { AppError, formatAxiosError } from '../utils/errorUtil';
+import { isTokenExpired, validateToken } from '../utils/jwtUtil';
+import { getAccessToken, getRefreshToken, saveTokens } from '../utils/localStorageUtil';
 
 export const loginUser = async (data) => {
   try {

@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { AUTH_ERRORS } from '../constants/messages';
 import { useReduxAlert } from '../hook/useReduxAlert';
 import { useReduxUser } from '../hook/useReduxUser';
+import { logService } from '../log/logService';
 import * as AuthService from '../service/AuthService';
 import { getValidRefreshTokenHelper } from '../service/AuthService';
 import * as UserService from '../service/UserService';
-import { decodeToken, isTokenExpired } from '../utils/jwtHandler';
-import * as LocalStorage from '../utils/localStorageHandler';
-import { APP_LOG_CONTEXT, logAuth, logAuthError, logError } from '../utils/logger';
+import { decodeToken, isTokenExpired } from '../utils/jwtUtil';
+import * as LocalStorage from '../utils/localStorageUtil';
 
 const AuthContext = createContext();
 
@@ -31,14 +31,13 @@ export const AuthProvider = ({ children }) => {
 
       const tokenData = await AuthService.refreshTokenService(refreshToken);
       LocalStorage.saveTokens(tokenData.access_token, tokenData.refresh_token);
-      logAuth(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Access token refreshed');
-
+      logService.logAuthSuccess('Access token refreshed', tokenData);
       return {
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
       };
     } catch (error) {
-      logAuthError(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Token refresh failed', error);
+      logService.logAuthError('Access token refreshed', error);
       throw error;
     }
   };
@@ -47,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     try {
       return await UserService.getDetailsUserById(userId, accessToken);
     } catch (error) {
-      logError(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Failed to fetch user details', error);
+      logService.logAuthError('Fetch user details', error);
       return null;
     }
   };
@@ -64,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       const res = await UserService.registerUser({ username, email, password });
       return res.message; // Follow response structure
     } catch (error) {
-      logError(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Register failed', error);
+      logService.logAuthError('Register', error);
       throw error;
     }
   };
@@ -81,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const initAuth = async () => {
-    logAuth(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Starting authentication initialization');
+    logService.logAuthSuccess('Auth initialization started');
     setIsInitializing(true);
 
     try {
@@ -98,7 +97,7 @@ export const AuthProvider = ({ children }) => {
       ) {
         updateReduxUser(savedReduxUser);
         setReduxAuthInitialized(true);
-        logAuth(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Quick restore from saved Redux state successful');
+        logService.logAuthSuccess('Quick restore from saved Redux state successful');
         setIsInitializing(false);
         return;
       }
@@ -107,7 +106,7 @@ export const AuthProvider = ({ children }) => {
       if (!LocalStorage.hasUserSession()) {
         resetReduxUser();
         setReduxAuthInitialized(true);
-        logAuth(APP_LOG_CONTEXT.AUTH_CONTEXT, 'No authentication data found, resetting user');
+        logService.logAuthSuccess('No authentication data found, resetting user');
         return;
       }
 
@@ -158,9 +157,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       setReduxAuthInitialized(true);
-      logAuth(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Authentication initialization completed successfully');
+      logService.logAuthSuccess('Authentication initialization successful');
     } catch (error) {
-      logAuthError(APP_LOG_CONTEXT.AUTH_CONTEXT, 'Authentication initialization', error);
+      logService.logAuthError('Authentication initialization', error);
       handleAuthFailure(AUTH_ERRORS.SESSION_EXPIRED);
     } finally {
       setIsInitializing(false);

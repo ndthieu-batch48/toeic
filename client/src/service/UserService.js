@@ -4,7 +4,7 @@ import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
 import { AppError, formatAxiosError } from '../utils/errorHandler';
 import { APP_LOG_CONTEXT, logAPI, logAPIError } from '../utils/logger';
 import { refreshTokenService } from './AuthService';
-import { axiosJWT } from './axiosInstance';
+import { axiosJWT } from './axiosInstances/axiosInstance';
 
 export const fetchData = async (url, requireAuth = false, options = {}) => {
   const { ignoreErrorCodes = [] } = options;

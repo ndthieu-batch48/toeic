@@ -1,9 +1,9 @@
 import axios from 'axios';
 
-import { resetUser } from '../redux/slides/userSlide';
-import { store } from '../redux/store';
-import { clearAuthStorage } from '../utils/localStorageHandler';
-import { getValidAccessTokenHelper } from './AuthService';
+import { resetUser } from '../../redux/slides/userSlide';
+import { store } from '../../redux/store';
+import { clearAuthStorage } from '../../utils/localStorageUtil';
+import { getValidAccessTokenHelper } from '../AuthService';
 
 export const axiosJWT = axios.create({
   baseURL: process.env.REACT_APP_API_URL,

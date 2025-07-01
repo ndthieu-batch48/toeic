@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaUserCircle, FaBars } from 'react-icons/fa';
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { FaBars, FaUserCircle } from 'react-icons/fa';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import './Header.css';
 import Logo from '../../assets/logo-removebg-preview.png';
 import { useAuth } from '../../context/NewAuthContext';
 import { setIsTestPage } from '../../redux/slides/userSlide';
-import { logInfo } from '../../utils/logger';
+import './Header.css';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -21,7 +20,6 @@ const Header = () => {
   const { logout } = useAuth();
 
   useEffect(() => {
-    logInfo('Header', 'Current redux state', user);
     if (location.pathname.includes('/fulltest') || location.pathname.includes('/practice')) {
       dispatch(setIsTestPage(true));
     } else {

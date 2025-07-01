@@ -1,4 +1,4 @@
-import { logError } from './logger';
+import { logError } from '../log/logger';
 
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'access_token',

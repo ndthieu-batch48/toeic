@@ -1,7 +1,5 @@
-import React from 'react';
-
+import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
 import './Footer.css';
-import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from 'react-icons/fa';
 
 import Logo from '../../assets/logo-removebg-preview.png';
 

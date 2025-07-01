@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import './RecentResults.css';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import './RecentResults.css';
 
 import { point_listening, point_reading } from '../../components/Data';
+import { logService } from '../../log/logService';
 import { fetchData } from '../../service/UserService';
-import { logAPIError } from '../../utils/logger';
 
 const RecentResults = () => {
   const [resultsData, setResultsData] = useState([]);
@@ -24,7 +24,7 @@ const RecentResults = () => {
         const res = await fetchData(`/get_result?user_id=${user.id}`, true);
         setResultsData(res);
       } catch (error) {
-        logAPIError('GET', `/get_result?user_id=${user.id}`, error, null);
+        logService.logApiGetError(`/get_result?user_id=${user.id}`, error);
       }
     };
     fetchResults();
