@@ -21,7 +21,7 @@ export const axiosJWT = axios.create({
 axiosJWT.interceptors.request.use(
   async (config) => {
     try {
-      const accessToken = getValidAccessTokenHelper();
+      const accessToken = await getValidAccessTokenHelper();
       config.headers['Authorization'] = `Bearer ${accessToken}`;
       return config;
     } catch (error) {

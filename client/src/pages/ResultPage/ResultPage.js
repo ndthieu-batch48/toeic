@@ -14,8 +14,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Banner from '../../components/Banner/Banner';
 import { point_listening, point_reading } from '../../components/Data';
 import { useReduxAlert } from '../../hook/useReduxAlert';
+import { logError } from '../../log/logger';
 import { fetchData } from '../../service/UserService';
-import { APP_LOG_CONTEXT, logAPIError } from '../../utils/logger';
 import './ResultPage.css';
 
 const ResultPage = () => {
@@ -39,7 +39,7 @@ const ResultPage = () => {
           }
         });
       } catch (error) {
-        logAPIError(APP_LOG_CONTEXT.GET, `/generate_result?history_id=${resultId}`, error);
+        logError('ResultPage component', `/generate_result?history_id=${resultId}`, error);
       }
     };
     fetchTests();

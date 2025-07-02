@@ -5,8 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import Logo from '../../assets/logo-removebg-preview.png';
 import { useAuth } from '../../context/NewAuthContext';
-import { setIsTestPage } from '../../redux/slides/userSlide';
 import './Header.css';
+import { useReduxUser } from '../../hook/useReduxUser';
+import { logInfo } from '../../log/logger';
+import { setIsTestPage } from '../../redux/slides/userSlide';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,10 +18,12 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const menuRef = useRef(null);
+  const { userState } = useReduxUser();
   const user = useSelector((state) => state.user); // Lấy toàn bộ user object
   const { logout } = useAuth();
 
   useEffect(() => {
+    logInfo('Header Component', 'Current user state', userState);
     if (location.pathname.includes('/fulltest') || location.pathname.includes('/practice')) {
       dispatch(setIsTestPage(true));
     } else {

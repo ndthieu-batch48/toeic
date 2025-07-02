@@ -18,7 +18,7 @@ export const getStorageItem = (key, defaultValue = null) => {
     const item = localStorage.getItem(key);
     return item !== null ? item : defaultValue;
   } catch (error) {
-    logError('StorageUtils', `Failed to get ${key}`, error);
+    logError('Storage Utils', `Failed to get ${key}`, error);
     return defaultValue;
   }
 };
@@ -34,7 +34,7 @@ export const setStorageItem = (key, value) => {
     localStorage.setItem(key, value);
     return true;
   } catch (error) {
-    logError('StorageUtils', `Failed to set ${key}`, error);
+    logError('Storage Utils', `Failed to set ${key}`, error);
     return false;
   }
 };
@@ -49,7 +49,7 @@ export const removeStorageItem = (key) => {
     localStorage.removeItem(key);
     return true;
   } catch (error) {
-    logError('StorageUtils', `Failed to remove ${key}`, error);
+    logError('Storage Utils', `Failed to remove ${key}`, error);
     return false;
   }
 };
@@ -65,7 +65,7 @@ export const getStorageJSON = (key, defaultValue = {}) => {
     const item = getStorageItem(key);
     return item ? JSON.parse(item) : defaultValue;
   } catch (error) {
-    logError('StorageUtils', `Failed to parse JSON for ${key}`, error);
+    logError('Storage Utils', `Failed to parse JSON for ${key}`, error);
     return defaultValue;
   }
 };
@@ -80,7 +80,7 @@ export const setStorageJSON = (key, value) => {
   try {
     return setStorageItem(key, JSON.stringify(value));
   } catch (error) {
-    logError('StorageUtils', `Failed to stringify JSON for ${key}`, error);
+    logError('Storage Utils', `Failed to stringify JSON for ${key}`, error);
     return false;
   }
 };
@@ -128,6 +128,7 @@ export const clearAuthStorage = () => {
     removeStorageItem(STORAGE_KEYS.USER_DATA),
     removeStorageItem(STORAGE_KEYS.REDUX_USER),
   ];
+  removeTestData();
 
   return results.every((result) => result === true);
 };
@@ -171,13 +172,7 @@ export const hasUserSession = () => {
   return !!(accessToken && refreshToken && userData && Object.keys(userData).length > 0);
 };
 
-export const clearUserFromStorage = () => {
-  // Clear auth data
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user');
-  localStorage.removeItem('redux_user');
-
+export const removeTestData = () => {
   // Clear test-related data
   localStorage.removeItem('testProgress');
   localStorage.removeItem('timeLimit');

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import './RecentResults.css';
 
 import { point_listening, point_reading } from '../../components/Data';
-import { logService } from '../../log/logService';
+import { logError } from '../../log/logger';
 import { fetchData } from '../../service/UserService';
 
 const RecentResults = () => {
@@ -24,7 +24,7 @@ const RecentResults = () => {
         const res = await fetchData(`/get_result?user_id=${user.id}`, true);
         setResultsData(res);
       } catch (error) {
-        logService.logApiGetError(`/get_result?user_id=${user.id}`, error);
+        logError('RecentResults component', `/get_result?user_id=${user.id}`, error);
       }
     };
     fetchResults();

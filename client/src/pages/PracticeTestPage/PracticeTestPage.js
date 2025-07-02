@@ -7,12 +7,14 @@ import { useSelector } from 'react-redux';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import CountdownTimer from '../../components/Countdown/Countdown';
+import { useReduxAlert } from '../../hook/useReduxAlert';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { deleteData, fetchData, postData } from '../../service/UserService';
 import './PracticeTestPage.css';
 
 const PracticeTestPage = () => {
   const navigate = useNavigate();
+  const { showError } = useReduxAlert();
   const { isLoggedIn, id: userId } = useSelector((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPart, setSelectedPart] = useState('');

@@ -55,7 +55,7 @@ const LoginPage = () => {
           {error && <div className="error-message">{error}</div>}
 
           <div className="login-form-group">
-            <label>Username</label>
+            <label>User name</label>
             <input
               type="text"
               placeholder="Enter your username"

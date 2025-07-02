@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import './ViewResultUserDo.css';
 
 import { useReduxAlert } from '../../hook/useReduxAlert';
+import { useReduxUser } from '../../hook/useReduxUser';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
 
@@ -13,6 +14,7 @@ const ViewResultUserDo = () => {
   const navigate = useNavigate();
   const { showError, showSuccess } = useReduxAlert();
   const user = useSelector((state) => state.user);
+  const { userState } = useReduxUser();
   const dispatch = useDispatch();
   const [selectedPart, setSelectedPart] = useState('');
   const [filteredQuestions, setFilteredQuestions] = useState([]);
@@ -60,11 +62,11 @@ const ViewResultUserDo = () => {
 
   // Check authentication
   useEffect(() => {
-    if (!user.isLoggedIn || !user?.id) {
+    if (!userState.isLoggedIn || !userState?.id) {
       showError('Please login to view test results!');
       navigate('/login');
     }
-  }, [user.isLoggedIn, user.id, navigate]);
+  }, [userState.isLoggedIn, user.id, navigate]);
 
   // Hàm kiểm tra nội dung hợp lệ trước khi lưu
   const isValidTranslationContent = (content) => {

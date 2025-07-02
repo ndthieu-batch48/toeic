@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import HomeSlideBanner from '../../components/HomeSlideBanner/HomeSlideBanner';
 import RecentResults from '../../components/RecentResults/RecentResults';
 import TestCard from '../../components/TestCard/TestCard';
+import { logError } from '../../log/logger';
 import { fetchData } from '../../service/UserService';
 
 import './HomePage.css';
@@ -14,7 +15,6 @@ const HomePage = () => {
   const [sortType, setSortType] = useState('newest');
   const [filterType, setFilterType] = useState('all');
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 992);
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
 
@@ -27,7 +27,7 @@ const HomePage = () => {
         const res = await fetchData('/tests');
         setTestData(res);
       } catch (error) {
-        console.log('Tests load fault!');
+        logError('HomePage', 'Failed to fetch tests', error);
       }
     };
     fetchTests();
@@ -36,7 +36,6 @@ const HomePage = () => {
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 768);
-      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 992);
     };
     window.addEventListener('resize', handleResize);
     handleResize();

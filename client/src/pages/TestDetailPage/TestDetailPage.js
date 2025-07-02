@@ -5,10 +5,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PartSelection from '../../components/TestDetail/PartSelection';
 import TabNavigation from '../../components/TestDetail/TabNavigation';
 import TestInfo from '../../components/TestDetail/TestInfo';
+import { logError } from '../../log/logger';
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { fetchData, deleteData } from '../../service/UserService';
 import './TestDetailPage.css';
-import { logError } from '../../utils/logger';
 
 const TestDetailPage = () => {
   const navigate = useNavigate();

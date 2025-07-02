@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 
-import { logAuthError } from '../log/logger';
+import { logError } from '../log/logger';
 
 /**
  * Decode JWT token safely
@@ -12,7 +12,7 @@ export const decodeToken = (token) => {
     if (!token) return null;
     return jwtDecode(token);
   } catch (error) {
-    logAuthError('JWT Decode', error);
+    logError('JWT Decode', 'Failed to decode token', error);
     return null;
   }
 };

@@ -1,16 +1,16 @@
-import { APP_LOG_CONTEXT, logError } from '../log/logger';
+import { logError } from '../log/logger';
 import { formatAxiosError } from '../utils/errorUtil';
 import { axiosJWT, axiosBase } from './axiosInstance/axiosInstance';
 
 export const fetchData = async (url, requireAuth = false, options = {}) => {
   const { ignoreErrorCodes = [] } = options;
   try {
-    const instance = requireAuth ? axiosJWT : axiosBase;
+    const instance = requireAuth === true ? axiosJWT : axiosBase;
     const res = await instance.get(url);
     return res.data;
   } catch (error) {
     if (!ignoreErrorCodes.includes(error.response?.status)) {
-      logError(APP_LOG_CONTEXT.USER_GET, url, error);
+      logError('Ignore error codes', url, error);
     }
 
     throw formatAxiosError(error);

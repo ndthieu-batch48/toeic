@@ -6,50 +6,13 @@ export function setLogLevel(level = 'TRACE') {
   log.setLevel(level);
 }
 
-/**
- * Define a descriptive context key here when adding new features.
- * This helps make logs more readable and easier to trace.
- */
-export const APP_LOG_CONTEXT = {
-  // General api service
-  GET: 'GET REQUEST',
-  POST: 'POST REQUEST',
-  PUT: 'PUT REQUEST',
-  PATCH: 'PATCH REQUEST',
-  DELETE: 'DELETE REQUEST',
-
-  // Gemini service
-  GEMINI: 'GEMINI REQUEST',
-  CHATBOT: 'CHATBOT REQUEST',
-
-  // Auth service
-  AUTH_CONTEXT: 'AUTH CONTEXT',
-  LOGIN: 'LOGIN REQUEST',
-  LOGOUT: 'LOGOUT REQUEST',
-  REGISTER: 'REGISTER REQUEST',
-  REFRESH_TOKEN: 'REFRESH TOKEN REQUEST',
-
-  // Userservices
-  USER_GET: 'USER GET REQUEST',
-  USER_GET_DETAIL: 'USER GET DETAIL REQUEST',
-  USER_POST: 'USER POST REQUEST',
-  USER_DELETE: 'USER DELETE REQUEST',
+const APP_LOG_LEVELS = {
+  TRACE: 'trace', // Use lowercase to match loglevel's method names
+  DEBUG: 'debug',
+  INFO: 'info',
+  WARN: 'warn',
+  ERROR: 'error',
 };
-
-export const APP_LOG_LEVELS = {
-  TRACE: 'TRACE',
-  DEBUG: 'DEBUG',
-  INFO: 'INFO',
-  WARN: 'WARN',
-  ERROR: 'ERROR',
-};
-
-// Validate the context key
-function validateContext(context) {
-  if (!APP_LOG_CONTEXT[context]) {
-    throw new Error(`[Logger] Invalid context: "${context}". Use APP_LOG_CONTEXT enum.`);
-  }
-}
 
 // Fallback formatter
 function formatPayload(payload) {
@@ -59,63 +22,56 @@ function formatPayload(payload) {
   return { value: String(payload) };
 }
 
-function _logFactory(context, level, message = 'No message', payload) {
-  validateContext(context);
+function _logFactory(level, context, message = 'No message', payload) {
   const formattedPayload = formatPayload(payload);
-
-  log[level](`[${context}] ${message}`, formattedPayload);
+  log[level](`[${context.toUpperCase()}] ${message}`, formattedPayload);
 }
 
 /**
  * Logs a general informational message with optional context and data.
  *
- * @param {string} context - A required context string, must be a value from APP_LOG_CONTEXT.
- *                           This helps identify the source or purpose of the log.
+ * @param {string} context - A required context string. This helps identify the source or purpose of the log.
  * @param {string} [message='No message'] - A descriptive message to include in the log output.
  * @param {any} [data=null] - Optional additional data or payload to log (e.g., object, string, etc.).
  * @returns {void}
  */
-export function logInfo(context, message = 'No message', data = null) {
+export function logInfo(context = 'INFO', message = 'No message', data = null) {
   _logFactory(APP_LOG_LEVELS.INFO, context, message, data);
 }
 
 /**
  * Logs a debug message for development purposes.
  *
- * @param {string} context - A required context string, must be a value from APP_LOG_CONTEXT.
- *                           Useful for tracing specific parts of code during debugging.
+ * @param {string} context - A required context string. Useful for tracing specific parts of code during debugging.
  * @param {string} [message='No message'] - A descriptive debug message.
  * @param {any} [data=null] - Optional debugging data (variables, objects, state, etc.).
  * @returns {void}
  */
-export function logDebug(context, message = 'No message', data = null) {
+export function logDebug(context = 'DEBUG', message = 'No message', data = null) {
   _logFactory(APP_LOG_LEVELS.DEBUG, context, message, data);
 }
 
 /**
  * Logs a warning message with optional context and data.
  *
- * @param {string} context - A required context string, must be a value from APP_LOG_CONTEXT.
- *                           Helps identify the source of the warning.
+ * @param {string} context - A required context string. Helps identify the source of the warning.
  * @param {string} [message='No message'] - A warning message to describe what might be wrong.
  * @param {any} [data=null] - Optional additional details or metadata relevant to the warning.
  * @returns {void}
  */
-export function logWarn(context, message = 'No message', data = null) {
-  _logFactory(APP_LOG_LEVELS.DEBUG, context, message, data);
+export function logWarn(context = 'WARN', message = 'No message', data = null) {
+  _logFactory(APP_LOG_LEVELS.WARN, context, message, data); // Fixed: was using DEBUG instead of WARN
 }
 
 /**
  * Logs an error message along with error details.
  *
- * @param {string} context - A required context string, must be a value from APP_LOG_CONTEXT.
- *                           Helps identify where the error occurred.
+ * @param {string} context - A required context string. Helps identify where the error occurred.
  * @param {string} [message='No message'] - A custom error message for readability in logs.
  * @param {any} error - The actual error object (can be AppError, AxiosError, or standard Error).
  * @returns {void}
  */
-export function logError(context, message = 'No message', error = null) {
-  validateContext(context);
+export function logError(context = 'ERROR', message = 'No message', error = null) {
   if (!error) {
     _logFactory(APP_LOG_LEVELS.ERROR, context, message, error);
     return;

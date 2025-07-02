@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useReduxUser } from '../../hook/useReduxUser';
 import { setAlertBox } from '../../redux/slides/userSlide';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
@@ -24,6 +25,7 @@ const ViewDetailResult = () => {
   const navigate = useNavigate();
   // const context = useContext(MyContext);
   const user = useSelector((state) => state.user);
+  const { userState } = useReduxUser();
   const dispatch = useDispatch();
   const [selectedPart, setSelectedPart] = useState('Part 1');
   const [filteredQuestions, setFilteredQuestions] = useState([]);
@@ -50,7 +52,7 @@ const ViewDetailResult = () => {
 
   // Check authentication
   useEffect(() => {
-    if (!user.isLoggedIn || !user?.id) {
+    if (!userState.isLoggedIn || !userState?.id) {
       dispatch(
         setAlertBox({
           open: true,
@@ -60,7 +62,7 @@ const ViewDetailResult = () => {
       );
       navigate('/login');
     }
-  }, [user.isLoggedIn, user.id, navigate]);
+  }, [userState.isLoggedIn, userState.id, navigate]);
 
   //Scoll nav
   useEffect(() => {

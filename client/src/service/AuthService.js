@@ -1,5 +1,4 @@
 import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
-import { APP_LOG_CONTEXT } from '../log/logger';
 import { AppError, formatAxiosError } from '../utils/errorUtil';
 import { isTokenExpired, validateToken } from '../utils/jwtUtil';
 import { getAccessToken, getRefreshToken, saveTokens } from '../utils/localStorageUtil';
@@ -46,7 +45,11 @@ export const logoutUser = async () => {
 };
 
 /**
- * Get a valid (non-expired) access token from storage
+ * Get a valid (non-expired) access token from storage.
+ *
+ * Handles token refresh fallback if needed.
+ *
+ * Save new tokens to local storage.
  * @returns {string} - Valid access token
  * @throws {AppError} - If token is missing or expired
  */
@@ -81,14 +84,14 @@ export const getValidRefreshTokenHelper = () => {
   const refreshToken = getRefreshToken();
 
   if (!refreshToken) {
-    throw new AppError(APP_LOG_CONTEXT.TOKEN_HANDLER, {
+    throw new AppError('Get token helper', {
       status: HTTP_STATUS.NOT_FOUND,
       message: AUTH_ERRORS.TOKEN_REFRESH_NOT_FOUND,
     });
   }
 
   if (isTokenExpired(refreshToken)) {
-    throw new AppError(APP_LOG_CONTEXT.TOKEN_HANDLER, {
+    throw new AppError('Get token helper', {
       status: HTTP_STATUS.UNAUTHORIZED,
       message: AUTH_ERRORS.TOKEN_REFRESH_EXPIRED,
     });

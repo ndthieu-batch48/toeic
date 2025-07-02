@@ -60,7 +60,7 @@ const RegisterPage = () => {
         <h2>REGISTER</h2>
         <form onSubmit={handleSubmit}>
           <div className="register-form-group">
-            <label>Name</label>
+            <label>User name</label>
             <input
               type="text"
               placeholder="Enter your name"
