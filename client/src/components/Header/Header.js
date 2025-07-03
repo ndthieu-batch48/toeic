@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import Logo from '../../assets/logo-removebg-preview.png';
-import { useAuth } from '../../context/NewAuthContext';
+import { useAuth } from '../../context/AuthContext';
 import './Header.css';
 import { useReduxUser } from '../../hook/useReduxUser';
 import { logInfo } from '../../log/logger';

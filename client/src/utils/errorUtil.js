@@ -23,8 +23,9 @@ export const formatAxiosError = (error) => {
 
   // 👉 Case 2: HTTP Error (with response)
   const status = error.response.status || error.status;
+  const details = error.response.data.detail;
   return {
-    message: getHttpErrorMessageByStatus(status),
+    message: details || getHttpErrorMessageByStatus(status),
     status: status,
   };
 };

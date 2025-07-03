@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { AUTH_SUCCESS, FORM_ERRORS } from '../../constants/messages';
-import { useAuth } from '../../context/NewAuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 // import * as UserService from '../../service/UserService';
 import './LoginPage.css';

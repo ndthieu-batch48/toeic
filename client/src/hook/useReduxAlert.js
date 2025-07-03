@@ -1,4 +1,4 @@
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { setAlertBox, closeAlertBox } from '../redux/slides/userSlide';
 
@@ -11,6 +11,7 @@ export const ALERT_TYPES = {
 
 export const useReduxAlert = () => {
   const dispatch = useDispatch();
+  const alertBox = useSelector((state) => state.user.alertBox);
 
   /**
    * Show alert with specified type and message
@@ -46,6 +47,7 @@ export const useReduxAlert = () => {
     showWarning,
     showInfo,
     closeAlert,
+    alertBox,
     ALERT_TYPES,
   };
 };

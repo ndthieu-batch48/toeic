@@ -1,5 +1,0 @@
-fastapi_venv
-.venv
-.env
-__pycache__
-package.json

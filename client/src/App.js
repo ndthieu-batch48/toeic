@@ -7,13 +7,12 @@ import './assets/css/style.css';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import Footer from './components/Footer/Footer';
 import Header from './components/Header/Header';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { AuthProvider, useAuth } from './context/NewAuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { useReduxAlert } from './hook/useReduxAlert';
 import AllUserResultPage from './pages/AllUserResultPage/AllUserResultPage';
 import ChatbotAI from './pages/ChatbotAI/ChatbotAI';
@@ -31,12 +30,9 @@ import ViewResultUserDo from './pages/ViewResultUserDo/ViewResultUserDo';
 
 // App content component (needs to be inside AuthProvider)
 const AppContent = () => {
-  const userState = useSelector((state) => state.user);
-  const { closeAlert } = useReduxAlert();
+  const { alertBox, closeAlert } = useReduxAlert();
   const { isAuthInitialized, isInitializing } = useAuth();
   const [showScrollButton, setShowScrollButton] = useState(false);
-
-  const alertBox = userState.alertBox;
 
   // Alert handling
   const handleClose = (event, reason) => {

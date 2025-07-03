@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { ALLOWED_DOMAINS } from '../../constants/allowedDomains';
 import { AUTH_SUCCESS } from '../../constants/messages';
-import { useAuth } from '../../context/NewAuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import './RegisterPage.css';
 

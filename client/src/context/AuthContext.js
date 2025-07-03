@@ -1,72 +1,37 @@
-import { jwtDecode } from 'jwt-decode';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import { AUTH_ERRORS } from '../constants/messages';
 import { useReduxAlert } from '../hook/useReduxAlert';
-import { resetUser, setAuthInitialized, updateUser } from '../redux/slides/userSlide';
+import { useReduxUser } from '../hook/useReduxUser';
+import { logError, logInfo } from '../log/logger';
+import * as AuthService from '../service/AuthService';
+import { getValidRefreshTokenHelper } from '../service/AuthService';
 import * as UserService from '../service/UserService';
-import { logAuth, logAuthError, logError } from '../utils/logger';
-// import { clearUserFromStorage, saveUserToStorage } from '../utils/userStorage';
+import { decodeToken, isTokenExpired } from '../utils/jwtUtil';
+import * as LocalStorage from '../utils/localStorageUtil';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const { showError } = useReduxAlert();
-  const userState = useSelector((state) => state.user);
   const [isInitializing, setIsInitializing] = useState(true);
+  const { userState, updateReduxUser, resetReduxUser, setReduxAuthInitialized } = useReduxUser();
 
-  // Token utilities
-  const decodeToken = (token) => {
-    try {
-      return jwtDecode(token);
-    } catch (error) {
-      logAuthError('Decode token', error);
-      return null;
-    }
-  };
-
-  const isTokenExpired = (token) => {
-    const decoded = decodeToken(token);
-    return !decoded || decoded.exp < Date.now() / 1000;
-  };
-
-  // Authentication API calls
   const refreshAccessToken = async () => {
     try {
-      const data = await UserService.refreshToken();
+      const refreshToken = getValidRefreshTokenHelper();
 
-      // Update localStorage
-      localStorage.setItem('access_token', data.access_token);
-      if (data.refresh_token) {
-        localStorage.setItem('refresh_token', data.refresh_token);
-      }
-
-      // Update Redux state
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      const updatedUserState = {
-        id: userData.id,
-        userName: userData.username,
-        userEmail: userData.email,
-        role: userData.role,
-        isStudent: userData.role === 'student',
-        access_token: data.access_token,
-        refresh_token: data.refresh_token || localStorage.getItem('refresh_token'),
-        isLoggedIn: true,
+      const tokenData = await AuthService.refreshTokenService(refreshToken);
+      LocalStorage.saveTokens(tokenData.access_token, tokenData.refresh_token);
+      logInfo('Auth Context', 'Access token refreshed', tokenData);
+      return {
+        access_token: tokenData.access_token,
+        refresh_token: tokenData.refresh_token,
       };
-
-      dispatch(updateUser(updatedUserState));
-
-      localStorage.setItem('redux_user', JSON.stringify(updatedUserState)); // Update redux_user in localStorage
-
-      logAuth('Refresh token', { message: 'successful' });
-      return data.access_token;
     } catch (error) {
-      logAuthError('Token refresh', error);
-      handleAuthFailure(AUTH_ERRORS.TOKEN_EXPIRED);
+      logError('AuthContext', 'Access token refreshed', error);
       throw error;
     }
   };
@@ -75,26 +40,31 @@ export const AuthProvider = ({ children }) => {
     try {
       return await UserService.getDetailsUserById(userId, accessToken);
     } catch (error) {
-      logError('AuthContext', 'Failed to fetch user details', error);
+      logError('AuthContext', 'Fetch user details', error);
       return null;
     }
   };
 
-  // State management utilities
-  const updateUserState = (userData, accessToken, refreshToken) => {
-    const userState = {
-      id: userData.id,
-      userName: userData.username,
-      userEmail: userData.email || '',
-      role: userData.role,
-      isStudent: userData.role === 'student',
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      isLoggedIn: true,
-    };
+  // Main authentication functions
+  const login = async ({ username, password }) => {
+    const userResponse = await AuthService.loginUser({ username, password });
+    updateReduxUser(userResponse);
+    LocalStorage.saveUserSession(userResponse);
+  };
 
-    dispatch(updateUser(userState));
-    // saveUserToStorage(userData, accessToken, refreshToken);
+  const register = async ({ username, email, password }) => {
+    try {
+      const res = await AuthService.registerUser({ username, email, password });
+      return res.message; // Follow response structure
+    } catch (error) {
+      logError('AuthContext', 'Register', error);
+      throw error;
+    }
+  };
+
+  const logout = () => {
+    resetReduxUser();
+    LocalStorage.clearAuthStorage();
   };
 
   const handleAuthFailure = (message) => {
@@ -103,103 +73,81 @@ export const AuthProvider = ({ children }) => {
     setTimeout(() => navigate('/login'), 2000);
   };
 
-  // Main authentication functions
-  const login = (userInfo, access_token, refresh_token) => {
-    updateUserState(userInfo, access_token, refresh_token);
-    navigate('/');
-  };
-
-  const logout = () => {
-    dispatch(resetUser());
-    // clearUserFromStorage();
-    navigate('/login');
-  };
-
   const initAuth = async () => {
-    logAuth('Starting authentication initialization');
+    logInfo('AuthContext', 'Auth initialization started');
     setIsInitializing(true);
 
     try {
       // Quick restore from saved Redux state
-      const savedReduxUser = localStorage.getItem('redux_user');
-      if (savedReduxUser) {
-        const reduxUser = JSON.parse(savedReduxUser);
-        if (reduxUser.id && reduxUser.isLoggedIn && !isTokenExpired(reduxUser.access_token)) {
-          dispatch(updateUser(reduxUser));
-          dispatch(setAuthInitialized(true));
-          logAuth('Quick restore from saved Redux state successful');
-          return;
-        }
+      const savedReduxUser = LocalStorage.getLocalReduxUser();
+      if (!savedReduxUser) {
+        handleAuthFailure(AUTH_ERRORS.SESSION_EXPIRED);
       }
 
-      // Check for authentication data
-      const accessToken = localStorage.getItem('access_token');
-      const refreshToken = localStorage.getItem('refresh_token');
-      const userData = localStorage.getItem('user');
-
-      if (!accessToken || !refreshToken || !userData) {
-        dispatch(resetUser());
-        dispatch(setAuthInitialized(true));
-        logAuth('No authentication data found, resetting user');
+      if (
+        savedReduxUser.id &&
+        savedReduxUser.isLoggedIn &&
+        !isTokenExpired(savedReduxUser.access_token)
+      ) {
+        updateReduxUser(savedReduxUser);
+        setReduxAuthInitialized(true);
+        logInfo('AuthContext', 'Quick restore from saved Redux state successful');
+        setIsInitializing(false);
         return;
       }
 
-      // Handle token refresh if needed
-      let currentAccessToken = accessToken;
-      const decoded = decodeToken(accessToken);
-
-      if (!decoded || isTokenExpired(accessToken)) {
-        logAuth('Token expired, refreshing...');
-        currentAccessToken = await refreshAccessToken();
+      // Check if a user session exists using utility function
+      if (!LocalStorage.hasUserSession()) {
+        resetReduxUser();
+        setReduxAuthInitialized(true);
+        logInfo('AuthContext', 'No authentication data found, resetting user');
+        return;
       }
 
-      // Update user state
-      const user = JSON.parse(userData);
-      updateUserState(user, currentAccessToken, refreshToken);
+      // Read the getValidAccessTokenHelper() comments to understand the logic
+      const accessToken = AuthService.getValidAccessTokenHelper();
+      const refreshToken = AuthService.getValidRefreshTokenHelper();
+      LocalStorage.saveAccessToken(accessToken);
+      LocalStorage.saveRefreshToken(refreshToken);
 
-      // Optionally fetch latest user details
+      const decoded = decodeToken(accessToken);
       if (decoded?.user_id) {
-        const userDetails = await fetchUserDetails(decoded.user_id, currentAccessToken);
+        const userDetails = await fetchUserDetails(decoded.user_id, accessToken);
         if (userDetails) {
-          updateUserState(userDetails, currentAccessToken, refreshToken);
+          updateReduxUser({
+            id: userDetails.id,
+            email: userDetails.email,
+            role: userDetails.role,
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
         }
       }
 
-      dispatch(setAuthInitialized(true));
-      logAuth('Authentication initialization completed successfully');
+      setReduxAuthInitialized(true);
+      logInfo('AuthContext', 'Authentication initialization successful');
     } catch (error) {
-      logAuthError('Authentication initialization', error);
+      logError('AuthContext', 'Authentication initialization', error);
       handleAuthFailure(AUTH_ERRORS.SESSION_EXPIRED);
     } finally {
       setIsInitializing(false);
     }
   };
 
-  // Auto-initialize on mount
   useEffect(() => {
-    initAuth();
-  });
+    if (!userState.isAuthInitialized) {
+      initAuth();
+    }
+  }, [userState.isAuthInitialized]);
 
+  // Public API - removed showAlert from here
   const contextValue = {
-    // User state
-    user: {
-      id: userState.id,
-      username: userState.userName,
-      email: userState.userEmail,
-      role: userState.role,
-    },
-    isLoggedIn: userState.isLoggedIn,
-    isAuthInitialized: userState.isAuthInitialized,
     isInitializing,
-
-    // Auth functions
+    isAuthInitialized: userState.isAuthInitialized,
     login,
     logout,
+    register,
     refreshAccessToken,
-
-    // Utility functions
-    decodeToken,
-    isTokenExpired,
   };
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
