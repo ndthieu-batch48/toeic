@@ -12,12 +12,6 @@ const initialState = {
   allUser: [],
   detailUser: {},
   isTestPage: false,
-  alertBox: {
-    msg: '',
-    type: '',
-    error: false,
-    open: false,
-  },
   isAuthInitialized: false,
 };
 
@@ -68,20 +62,6 @@ export const userSlice = createSlice({
     setIsTestPage: (state, action) => {
       state.isTestPage = action.payload;
     },
-    setAlertBox: (state, action) => {
-      state.alertBox = { ...state.alertBox, ...action.payload };
-    },
-    closeAlertBox: (state) => {
-      state.alertBox.open = false;
-    },
-    resetAlertBox: (state) => {
-      state.alertBox = {
-        msg: '',
-        type: '',
-        error: false,
-        open: false,
-      };
-    },
     setAuthInitialized: (state, action) => {
       state.isAuthInitialized = action.payload;
     },
@@ -94,9 +74,6 @@ export const {
   setAllUser,
   setDetailUser,
   setIsTestPage,
-  setAlertBox,
-  closeAlertBox,
-  resetAlertBox,
   setAuthInitialized,
 } = userSlice.actions;
 export default userSlice.reducer;

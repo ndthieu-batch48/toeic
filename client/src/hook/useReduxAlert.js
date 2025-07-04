@@ -1,51 +1,45 @@
 import { useDispatch, useSelector } from 'react-redux';
 
-import { setAlertBox, closeAlertBox } from '../redux/slides/userSlide';
+import { setAlertBox, closeAlertBox } from '../redux/slices/alertSlice';
 
 export const ALERT_TYPES = {
   SUCCESS: 'success',
   ERROR: 'error',
-  WARNING: 'warning',
-  INFO: 'info',
 };
 
 export const useReduxAlert = () => {
   const dispatch = useDispatch();
-  const alertBox = useSelector((state) => state.user.alertBox);
+  const alertBox = useSelector((state) => state.alert.alertBox);
 
-  /**
-   * Show alert with specified type and message
-   * @param {string} message - The message to display
-   * @param {string} type - Alert type (success, error, warning, info)
-   */
-  const showAlert = (message, type = ALERT_TYPES.INFO) => {
-    const alertType = Object.values(ALERT_TYPES).includes(type) ? type : ALERT_TYPES.INFO; // Validate alert type
-
+  const showSuccess = (message) => {
     dispatch(
       setAlertBox({
         open: true,
-        error: alertType === ALERT_TYPES.ERROR, // backward compatibility
-        type: alertType,
+        error: false,
+        type: ALERT_TYPES.SUCCESS,
         msg: message,
       })
     );
   };
 
-  const showSuccess = (message) => showAlert(message, ALERT_TYPES.SUCCESS);
-  const showError = (message) => showAlert(message, ALERT_TYPES.ERROR);
-  const showWarning = (message) => showAlert(message, ALERT_TYPES.WARNING);
-  const showInfo = (message) => showAlert(message, ALERT_TYPES.INFO);
+  const showError = (message) => {
+    dispatch(
+      setAlertBox({
+        open: true,
+        error: true,
+        type: ALERT_TYPES.ERROR,
+        msg: message,
+      })
+    );
+  };
 
   const closeAlert = () => {
     dispatch(closeAlertBox());
   };
 
   return {
-    showAlert,
     showSuccess,
     showError,
-    showWarning,
-    showInfo,
     closeAlert,
     alertBox,
     ALERT_TYPES,

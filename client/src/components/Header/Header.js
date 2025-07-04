@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import './Header.css';
 import { useReduxUser } from '../../hook/useReduxUser';
 import { logInfo } from '../../log/logger';
-import { setIsTestPage } from '../../redux/slides/userSlide';
+import { setIsTestPage } from '../../redux/slices/userSlice';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);

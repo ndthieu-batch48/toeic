@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { resetUser } from '../../redux/slides/userSlide';
+import { resetUser } from '../../redux/slices/userSlice';
 import { store } from '../../redux/store';
 import { clearAuthStorage } from '../../utils/localStorageUtil';
 import { getValidAccessTokenHelper } from '../AuthService';

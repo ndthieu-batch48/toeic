@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import PartSelection from '../../components/TestDetail/PartSelection';
 import TabNavigation from '../../components/TestDetail/TabNavigation';
 import TestInfo from '../../components/TestDetail/TestInfo';
+import { useReduxAlert } from '../../hook/useReduxAlert';
+import { useReduxUser } from '../../hook/useReduxUser';
 import { logError } from '../../log/logger';
-import { setAlertBox } from '../../redux/slides/userSlide';
 import { fetchData, deleteData } from '../../service/UserService';
 import './TestDetailPage.css';
 
 const TestDetailPage = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useReduxAlert();
+  const { userState } = useReduxUser();
   const [activeTab, setActiveTab] = useState('practice');
   const [timeLimit, setTimeLimit] = useState('');
   const [hasSavedProgress, setHasSavedProgress] = useState(null);
@@ -21,13 +23,10 @@ const TestDetailPage = () => {
   const { id } = useParams();
 
   // Lấy dữ liệu từ api
-  // const [testData, setTestData] = useState([]);
   const [partData, setPartData] = useState([]);
   const [testPartData, setTestPartData] = useState([]);
   const [testInfo, setTestInfo] = useState({});
   const [parts, setParts] = useState([]);
-  const user = useSelector((state) => state.user);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchAPI = async () => {
@@ -45,7 +44,7 @@ const TestDetailPage = () => {
       }
     };
     fetchAPI();
-  }, [id, user.isLoggedIn]);
+  }, [id, userState.isLoggedIn]);
 
   useEffect(() => {
     if (testPartData.length > 0 && partData.length > 0) {
@@ -81,11 +80,11 @@ const TestDetailPage = () => {
   useEffect(() => {
     const checkSavedProgress = async () => {
       try {
-        if (!user?.id) {
+        if (!userState?.id) {
           setHasSavedProgress(null);
           return;
         }
-        const res = await fetchData(`/history/saved?user_id=${user.id}&test_id=${id}`, true, {
+        const res = await fetchData(`/history/saved?user_id=${userState.id}&test_id=${id}`, true, {
           ignoreErrorCodes: [404],
         });
         // Chỉ set hasSavedProgress nếu có bản ghi "Saved" hợp lệ
@@ -96,39 +95,20 @@ const TestDetailPage = () => {
         }
       } catch (error) {
         if (error.status === 404) {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: false,
-              msg: 'No saved progress found',
-            })
-          );
+          showSuccess('No saved progress found');
           setHasSavedProgress(null);
         } else {
-          console.error('Error checking saved progress:', error);
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Failed to check saved progress.',
-            })
-          );
+          showError('Failed to check saved progress.');
           setHasSavedProgress(null);
         }
       }
     };
-    if (user.isLoggedIn) checkSavedProgress();
-  }, [id, user.isLoggedIn]);
+    if (userState.isLoggedIn) checkSavedProgress();
+  }, [id, userState.isLoggedIn]);
 
   const StartPractice = async () => {
-    if (!user.isLoggedIn) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'You have no login yet!',
-        })
-      );
+    if (!userState.isLoggedIn) {
+      showSuccess('You have no login yet!');
       navigate('/login');
       return;
     }
@@ -138,17 +118,11 @@ const TestDetailPage = () => {
       .map((part) => part.partOrderNum);
 
     if (selectedPartOrders.length === 0) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'You have to choose at least 1 part!',
-        })
-      );
+      showError('Please select at least one part to start the practice test.');
       return;
     }
 
-    // const user = JSON.parse(localStorage.getItem("user"));
+    // const userState = JSON.parse(localStorage.getItem("userState"));
     if (hasSavedProgress && hasSavedProgress.status === 'save') {
       const confirm = window.confirm(
         'You have a saved test. Starting a new test will delete it. Are you sure?'
@@ -156,18 +130,11 @@ const TestDetailPage = () => {
       if (!confirm) return;
 
       try {
-        await deleteData(`/history/saved?user_id=${user.id}&test_id=${id}`, true);
+        await deleteData(`/history/saved?user_id=${userState.id}&test_id=${id}`, true);
         setHasSavedProgress(null);
       } catch (error) {
-        console.log('Error deleting saved progress:', error);
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: true,
-            msg: 'Failed to delete saved progress.',
-          })
-        );
-        return;
+        logError('Test detail page', 'Failed to delete saved progress', error);
+        showError('Failed to delete saved test progress.');
       }
     }
 
@@ -184,13 +151,7 @@ const TestDetailPage = () => {
     sessionStorage.setItem('hasSubmitted', 'false');
     const queryParams = selectedPartOrders.map((part) => `part=${part}`).join('&');
     navigate(`/tests/${id}/practice?${queryParams}`);
-    dispatch(
-      setAlertBox({
-        open: true,
-        error: false,
-        msg: 'You are in testing!',
-      })
-    );
+    showSuccess('You are starting a new practice test!');
   };
 
   const handleTimeChange = (event) => {
@@ -207,27 +168,15 @@ const TestDetailPage = () => {
 
   // Bắt đầu bài test
   const StartTest = () => {
-    if (user.isLoggedIn) {
+    if (userState.isLoggedIn) {
       localStorage.setItem('testProgress', JSON.stringify({}));
       sessionStorage.setItem('hasSubmitted', 'false');
       // Xóa testTime-${id} để FullTestPage sử dụng duration từ cơ sở dữ liệu
       localStorage.removeItem(`testTime-${id}`);
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: false,
-          msg: 'You are in testing!',
-        })
-      );
+      showSuccess('You are in testing!');
       navigate(`/fulltest/${id}`);
     } else {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'You have no login yet!',
-        })
-      );
+      showSuccess('You have no login yet!');
       navigate('/login');
     }
   };
@@ -235,22 +184,16 @@ const TestDetailPage = () => {
   // Xem đáp án bài thi
   const handleAnswerClick = () => {
     navigate(`/test/viewdetailanswer/${id}`);
-    dispatch(
-      setAlertBox({
-        open: true,
-        error: false,
-        msg: 'You are viewing answer!',
-      })
-    );
+    showSuccess('You are viewing all answer details!');
   };
 
   // Kiểm tra tiến trình đã lưu khi component mount
   useEffect(() => {
     const checkSavedProgress = async () => {
       try {
-        // const user = JSON.parse(localStorage.getItem("user"));
-        if (!user?.id) return;
-        const res = await fetchData(`/history/saved?user_id=${user.id}&test_id=${id}`, true);
+        // const userState = JSON.parse(localStorage.getItem("userState"));
+        if (!userState?.id) return;
+        const res = await fetchData(`/history/saved?user_id=${userState.id}&test_id=${id}`, true);
         if (res) {
           setHasSavedProgress(res);
         }
@@ -259,11 +202,11 @@ const TestDetailPage = () => {
         setHasSavedProgress(null);
       }
     };
-    if (user.isLoggedIn) checkSavedProgress();
-  }, [id, user.isLoggedIn]);
+    if (userState.isLoggedIn) checkSavedProgress();
+  }, [id, userState.isLoggedIn]);
 
   const handleContinue = () => {
-    if (user.isLoggedIn) {
+    if (userState.isLoggedIn) {
       if (!hasSavedProgress || !hasSavedProgress.part) return;
       const savedParts = hasSavedProgress.part.map((part) => part.split(' ')[1]);
       const queryParams = savedParts.map((part) => `part=${part}`).join('&');
@@ -287,21 +230,9 @@ const TestDetailPage = () => {
 
       sessionStorage.setItem('hasSubmitted', 'false');
       navigate(`/tests/${id}/practice?${queryParams}`);
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: false,
-          msg: 'Continuing your saved test!',
-        })
-      );
+      showSuccess('You are continuing your saved test!');
     } else {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'You have no login yet!',
-        })
-      );
+      showSuccess('You have no login yet!');
       navigate('/login');
     }
   };

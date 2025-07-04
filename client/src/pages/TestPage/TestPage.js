@@ -1,19 +1,19 @@
 import Pagination from '@mui/material/Pagination';
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 import Banner from '../../components/Banner/Banner';
 import SearchBar from '../../components/SearchBar/SearchBar';
 import TestCard from '../../components/TestCard/TestCard';
-import { setAlertBox } from '../../redux/slides/userSlide';
+import { useReduxAlert } from '../../hook/useReduxAlert';
+import { useReduxUser } from '../../hook/useReduxUser';
 import { fetchData } from '../../service/UserService';
 import './TestPage.css';
 
 const TestsPage = () => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user);
-  const dispatch = useDispatch();
+  const { userState } = useReduxUser();
+  const { showError } = useReduxAlert();
   const [testData, setTestData] = useState([]);
   const [filteredTests, setFilteredTests] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,17 +28,11 @@ const TestsPage = () => {
         setFilteredTests(reversedTests);
       } catch (error) {
         console.log('Fetch tests fault!');
-        dispatch(
-          setAlertBox({
-            open: true,
-            error: true,
-            msg: 'Failed to load tests.',
-          })
-        );
+        showError('Failed to load tests.');
       }
     };
     fetchTests();
-  }, []);
+  }, [showError]);
 
   const handleSearch = (query) => {
     const filtered = testData.filter((test) =>
@@ -60,14 +54,8 @@ const TestsPage = () => {
   };
 
   const handleTestClick = (testId) => {
-    if (!user.isLoggedIn) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Please login to view test details!',
-        })
-      );
+    if (!userState.isLoggedIn) {
+      showError('Please login to view test details!');
       navigate('/login');
       return;
     }

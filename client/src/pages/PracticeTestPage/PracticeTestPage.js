@@ -8,6 +8,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 import CountdownTimer from '../../components/Countdown/Countdown';
 import { useReduxAlert } from '../../hook/useReduxAlert';
+import { TranslationPrompts } from '../../prompts/prompt';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { deleteData, fetchData, postData } from '../../service/UserService';
 import './PracticeTestPage.css';
@@ -15,7 +16,7 @@ import './PracticeTestPage.css';
 const PracticeTestPage = () => {
   const navigate = useNavigate();
   const { showError } = useReduxAlert();
-  const { isLoggedIn, id: userId } = useSelector((state) => state.user);
+  const { id: userId } = useSelector((state) => state.user);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPart, setSelectedPart] = useState('');
   const [filteredQuestions, setFilteredQuestions] = useState([]);
@@ -32,7 +33,6 @@ const PracticeTestPage = () => {
   const [showScripts, setShowScripts] = useState({});
   const [loadingProgress, setLoadingProgress] = useState(0);
 
-  const [scrollPositions, setScrollPositions] = useState({});
   const { id } = useParams();
   const [questionData, setQuestionData] = useState([]);
   const [partData, setPartData] = useState([]);
@@ -40,7 +40,6 @@ const PracticeTestPage = () => {
   const [answerData, setAnswerData] = useState([]);
   const [testPartData, setTestPartData] = useState([]);
   const [testData, setTestData] = useState([]);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   const { role } = useSelector((state) => state.user); // Lấy role từ Redux
   const [showTranslations, setShowTranslations] = useState({}); // Trạng thái hiển thị bản dịch
@@ -79,7 +78,6 @@ const PracticeTestPage = () => {
 
     // If test was previously submitted, we should clear the saved progress and time
     if (hasSubmitted === 'true') {
-      console.log('Previous test was submitted, clearing saved data');
       localStorage.removeItem(`testProgress-${id}`);
       localStorage.removeItem(`testTime-${id}`);
       sessionStorage.removeItem('hasSubmitted');
@@ -203,7 +201,6 @@ const PracticeTestPage = () => {
       try {
         const { timeLeft: savedTimeLeft, testType } = JSON.parse(savedTime);
         if (testType === 'PracticeTest' && savedTimeLeft !== null && savedTimeLeft >= 0) {
-          console.log('Restoring timer from localStorage:', savedTimeLeft);
           setTimeLeft(savedTimeLeft);
         }
       } catch (error) {
@@ -240,7 +237,6 @@ const PracticeTestPage = () => {
           setTimeout(() => {
             setIsLoadingAll(false);
           }, 1000);
-          console.log('Using cached data');
         } else {
           const fetchPromises = [
             fetchData('/questions', true),
@@ -293,7 +289,6 @@ const PracticeTestPage = () => {
             : Array.isArray(languages)
               ? languages
               : [];
-          console.log('Fetched languages:', normalizedLanguages); // Debug
 
           await set(cacheKey, {
             questions,
@@ -306,8 +301,6 @@ const PracticeTestPage = () => {
             timestamp: Date.now(),
           });
           updateProgress(90); // Cache completed
-          console.log('Fetched new data and cached');
-          console.log('languages', languages);
         }
 
         setQuestionData(questions);
@@ -349,11 +342,6 @@ const PracticeTestPage = () => {
                 savedTimePick !== null &&
                 savedIsCountingDown !== null
               ) {
-                console.log('Restoring timer from saved progress (Continue):', {
-                  savedTimeLeft,
-                  savedTimePick,
-                  savedIsCountingDown,
-                });
                 setTimeLeft(savedTimeLeft);
                 setTimePick(savedTimePick);
                 setIsCountingDown(savedIsCountingDown);
@@ -379,11 +367,6 @@ const PracticeTestPage = () => {
                 savedTimePick !== null &&
                 savedIsCountingDown !== null
               ) {
-                console.log('Restoring timer from localStorage:', {
-                  savedTimeLeft,
-                  savedTimePick,
-                  savedIsCountingDown,
-                });
                 setTimeLeft(savedTimeLeft);
                 setTimePick(savedTimePick);
                 setIsCountingDown(savedIsCountingDown);
@@ -454,10 +437,8 @@ const PracticeTestPage = () => {
         setLoadingProgress(100);
         setTimeout(() => {
           setIsLoadingAll(false);
-          console.log('All data loaded, page ready');
         }, 300); // Delay nhỏ để thấy được progress hoàn thành
       } catch (error) {
-        console.log('Fetch API fault!', error);
         setIsLoadingAll(false);
         setLoadingProgress(0);
       }
@@ -492,7 +473,6 @@ const PracticeTestPage = () => {
 
   const calculatePartsData = (data) => {
     // Lọc bỏ các phần tử undefined, null hoặc không có part_order/questionCount
-    console.log('data', data);
     const validData = data.filter(
       (part) => part && part.part_order && typeof part.questionCount === 'number'
     );
@@ -547,17 +527,14 @@ const PracticeTestPage = () => {
         const orderB = parseInt(b.part_order.split(' ')[1]);
         return orderA - orderB;
       });
-    console.log('selectedTestPart:', calculatedTestPart); // Debug
     setSelectedTestPart(calculatedTestPart); // Lưu vào state
 
     setPartsData(calculatePartsData(calculatedTestPart));
 
     const part = calculatedTestPart.find((p) => p.part_order === partOrder);
-    console.log('part', part);
 
     if (part) {
       const partQuestions = questionData.filter((q) => q.part_id === part.id);
-      console.log('partQuestions', partQuestions);
 
       setFilteredQuestions(partQuestions);
       setCurrentPartQuestions(partQuestions);
@@ -647,7 +624,6 @@ const PracticeTestPage = () => {
   const handleAnswerChange = (questionId, answerId) => {
     setSelectedAnswers((prevState) => {
       const newAnswers = { ...prevState, [questionId]: answerId };
-      console.log('Updated selectedAnswers:', newAnswers);
       return newAnswers;
     });
   };
@@ -688,15 +664,6 @@ const PracticeTestPage = () => {
     languageId,
     partOrder
   ) => {
-    console.log('fetchTranslationFromGemini inputs:', {
-      questionId,
-      audioScript,
-      questionContent,
-      answers,
-      languageId,
-      partOrder,
-    });
-
     setIsTranslating((prev) => ({ ...prev, [questionId]: true }));
     const targetLanguage = languageMap[languageId] || 'Vietnamese';
     try {
@@ -753,7 +720,6 @@ const PracticeTestPage = () => {
             .join('\n');
           prompt = `Translate the following English question and its answer choices into ${targetLanguage} in a single block of text, maintaining the structure with the question followed by options labeled A, B, C, D:\n\nQuestion: ${questionContent}\n\nOptions:\n${answerText}`;
           const questionTranslation = await sendPromptToBackend(prompt, languageId);
-          console.log('API response for questionId:', questionId, questionTranslation);
           translation = {
             script: '',
             question: extractTranslationContent(questionTranslation),
@@ -815,17 +781,12 @@ const PracticeTestPage = () => {
     }));
 
     if (!isShowing && groupId && !isNaN(Number(groupId))) {
-      console.log('Checking database for translation...', {
-        questionId,
-        languageId,
-      });
       try {
         const res = await fetchData(
           `/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
 
-        console.log('API /translate response:', res);
         if (res.success && res.data) {
           let translationObj;
           const cleanContent = extractTranslationContent(res.data.translate_content);
@@ -862,30 +823,12 @@ const PracticeTestPage = () => {
         return;
       }
 
-      // Đầu tiên tìm câu hỏi thực tế theo order
-      console.log('questionData', questionData);
-
-      console.log('partData', partData);
-
-      console.log('partDetails', partDetails);
-      console.log('audioScript', audioScript);
-      console.log('questionContent', questionContent);
-      console.log('questionContent.trim', questionContent.trim());
-      console.log('questionContent.trim', !/^\d+\.$/.test(questionContent.trim()));
+      const partDetails = selectedTestPart.find((p) => p.id === question.part_id);
 
       const isAudioScriptValid = audioScript && audioScript !== 'No script available.';
       const isQuestionContentValid =
         questionContent && questionContent.trim() !== '' && !/^\d+\.$/.test(questionContent.trim());
 
-      console.log('toggleTranslation inputs for question:', {
-        questionId,
-        audioScript,
-        questionContent,
-        answers,
-        partOrder: partDetails?.part_order,
-        audioScript,
-        isQuestionContentValid,
-      });
       if (
         (['Part 1', 'Part 2'].includes(partDetails?.part_order) &&
           (isAudioScriptValid || isQuestionContentValid)) ||
@@ -893,7 +836,6 @@ const PracticeTestPage = () => {
           (isAudioScriptValid || isQuestionContentValid)) ||
         (['Part 5', 'Part 6', 'Part 7'].includes(partDetails?.part_order) && isQuestionContentValid)
       ) {
-        console.log('Fetching new translation from API...');
         const translation = await fetchTranslationFromGemini(
           audioScript,
           questionContent,
@@ -932,7 +874,6 @@ const PracticeTestPage = () => {
   const handleSaveTranslation = async (questionId, groupId, translation, languageId) => {
     try {
       if (!translation || (!translation.script && !translation.question)) {
-        console.log('No valid translation to save.');
         return;
       }
 
@@ -954,9 +895,7 @@ const PracticeTestPage = () => {
         }),
         language_id: languageId,
       };
-      console.log('Saving translation payload:', payload);
       const res = await postData('/translate', payload, true);
-      console.log('Save response:', res);
       if (res.success) {
         alert('Translation saved successfully!');
         setIsEditingTranslation((prev) => ({
@@ -1139,34 +1078,19 @@ const PracticeTestPage = () => {
     paragraphMain,
     languageId = 1
   ) => {
-    console.log('=== toggleImageTranslation Start ===', {
-      mediaId,
-      languageId,
-      isShowing: showImageTranslations[mediaId],
-    });
     const isShowing = showImageTranslations[mediaId];
     // Lưu vị trí scroll trước khi đóng/mở dropdown
     let scrollY = window.scrollY;
     let container = document.getElementById(`translation-content-${mediaId}`);
     let containerScroll = container ? container.scrollTop : null;
-    console.log('Initial scroll positions:', {
-      scrollY,
-      containerScroll,
-      containerExists: !!container,
-    });
 
     setShowImageTranslations((prev) => {
-      console.log('Updating showImageTranslations:', {
-        mediaId,
-        newState: !prev[mediaId],
-      });
       return {
         ...prev,
         [mediaId]: !prev[mediaId],
       };
     });
     if (!isShowing && mediaId && !isNaN(Number(mediaId))) {
-      console.log('Checking database for image translation...');
       try {
         const res = await fetchData(
           `/translate?media_id=${mediaId}&question_id=${mediaId}&&language_id=${languageId}`,
@@ -1250,10 +1174,8 @@ const PracticeTestPage = () => {
             answers: [],
           };
         }
-        const answerText = answers
-          .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
-          .join('\n');
-        prompt = `Translate the following answer choices into ${targetLanguage}, maintaining the structure with options labeled A, B, C, D:\n\nOptions:\n${answerText}`;
+        const answerText = answers.map((ans) => `${ans.content}`).join(', ');
+        prompt = ` translate the following multiple-choice options ${answerText}, marked A, B, C, and D, into ${targetLanguage}. Ensure the output maintains the specified format`;
         translation = await sendPromptToBackend(prompt, languageId);
 
         setQuestionTranslations((prev) => ({
@@ -1264,10 +1186,16 @@ const PracticeTestPage = () => {
           },
         }));
       } else {
-        const answerText = answers
-          .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
-          .join('\n');
-        prompt = `Translate the following English question and its answer choices into ${targetLanguage} in a single block of text, maintaining the structure with the question followed by options labeled A, B, C, D. Ensure the question is translated fully and accurately:\n\nQuestion: ${questionContent}\n\nOptions:\n${answerText}`;
+        // const answerText = answers
+        //   .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
+        //   .join('\n');
+        const answerText = answers.map((ans) => `${ans.content}`).join(', ');
+        // prompt = `Translate the following English question and its answer choices into ${targetLanguage} in a single block of text, maintaining the structure with the question followed by options labeled A, B, C, D. Ensure the question is translated fully and accurately:\n\nQuestion: ${questionContent}\n\nOptions:\n${answerText}`;
+        prompt = TranslationPrompts.buildTranslationPrompt(
+          questionContent,
+          answerText,
+          targetLanguage
+        );
         translation = await sendPromptToBackend(prompt, languageId);
 
         setQuestionTranslations((prev) => ({
@@ -1377,10 +1305,6 @@ const PracticeTestPage = () => {
     }));
 
     if (!isShowing && groupId && !isNaN(Number(groupId))) {
-      console.log('Checking database for translation...', {
-        questionId,
-        languageId,
-      });
       try {
         const res = await fetchData(
           `/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
@@ -1402,7 +1326,6 @@ const PracticeTestPage = () => {
         console.error('Error fetching translation from database:', error);
       }
 
-      console.log('No valid translation found, fetching from API...');
       const translation = await fetchQuestionTranslation(
         questionContent,
         answers,
@@ -1507,9 +1430,7 @@ const PracticeTestPage = () => {
         language_id: languageId,
       };
 
-      console.log('Saving translation payload:', payload);
       const res = await postData('/translate', payload, true);
-      console.log('Save response:', res);
 
       if (res.success) {
         setQuestionTranslations((prev) => ({
@@ -2158,17 +2079,6 @@ const PracticeTestPage = () => {
                     e.preventDefault();
                     e.target.blur();
                     const newLangId = Number(e.target.value);
-                    const scrollY = window.scrollY;
-                    console.log('=== Language Combobox Change ===', {
-                      mediaId: groupId,
-                      newLangId,
-                      scrollY,
-                      isTranslationShowing: showImageTranslations[groupId],
-                    });
-                    setScrollPositions((prev) => ({
-                      ...prev,
-                      [groupId]: scrollY,
-                    }));
                     setImageTranslationLanguages((prev) => ({
                       ...prev,
                       [groupId]: newLangId,
@@ -2467,7 +2377,6 @@ const PracticeTestPage = () => {
   const handleExit = () => {
     const confirm = window.confirm('Are you sure exit the test!');
     if (confirm) {
-      console.log('Clearing localStorage on exit');
       localStorage.removeItem(`testProgress-${id}`);
       localStorage.removeItem(`testTime-${id}`);
       localStorage.removeItem(`testTimeLimit-${id}`);
@@ -2477,7 +2386,6 @@ const PracticeTestPage = () => {
   };
 
   useEffect(() => {
-    console.log('Saving selectedAnswers to localStorage:', selectedAnswers);
     localStorage.setItem(`testProgress-${id}`, JSON.stringify(selectedAnswers));
   }, [selectedAnswers, id]);
 

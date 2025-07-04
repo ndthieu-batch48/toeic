@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
 
-import { updateUser, resetUser, setAuthInitialized } from '../redux/slides/userSlide';
+import { updateUser, resetUser, setAuthInitialized } from '../redux/slices/userSlice';
 
 export const useReduxUser = () => {
   const dispatch = useDispatch();

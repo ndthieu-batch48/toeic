@@ -1,32 +1,33 @@
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useReduxAlert } from '../../hook/useReduxAlert';
 import { useReduxUser } from '../../hook/useReduxUser';
-import { setAlertBox } from '../../redux/slides/userSlide';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
 import './ViewDetailResult.css';
 
 // Hiển thị tab Part và Navigation
-const partsData = {
-  'Part 1': { start: 1, end: 6 },
-  'Part 2': { start: 7, end: 31 },
-  'Part 3': { start: 32, end: 70 },
-  'Part 4': { start: 71, end: 100 },
-  'Part 5': { start: 101, end: 130 },
-  'Part 6': { start: 131, end: 146 },
-  'Part 7': { start: 147, end: 200 },
-};
+// const partsData = {
+//   'Part 1': { start: 1, end: 6 },
+//   'Part 2': { start: 7, end: 31 },
+//   'Part 3': { start: 32, end: 70 },
+//   'Part 4': { start: 71, end: 100 },
+//   'Part 5': { start: 101, end: 130 },
+//   'Part 6': { start: 131, end: 146 },
+//   'Part 7': { start: 147, end: 200 },
+// };
 
 const ViewDetailResult = () => {
   const navigate = useNavigate();
   // const context = useContext(MyContext);
-  const user = useSelector((state) => state.user);
+  // const user = useSelector((state) => state.user);
   const { userState } = useReduxUser();
-  const dispatch = useDispatch();
+  const { showError } = useReduxAlert();
+  // const dispatch = useDispatch();
   const [selectedPart, setSelectedPart] = useState('Part 1');
   const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [selectedAnswers, setSelectedAnswers] = useState({});
@@ -53,16 +54,10 @@ const ViewDetailResult = () => {
   // Check authentication
   useEffect(() => {
     if (!userState.isLoggedIn || !userState?.id) {
-      dispatch(
-        setAlertBox({
-          open: true,
-          error: true,
-          msg: 'Please login to view test results!',
-        })
-      );
+      showError('Please login to view test results!');
       navigate('/login');
     }
-  }, [userState.isLoggedIn, userState.id, navigate]);
+  }, [userState.isLoggedIn, userState.id, navigate, showError]);
 
   //Scoll nav
   useEffect(() => {
@@ -180,27 +175,15 @@ const ViewDetailResult = () => {
       } catch (error) {
         console.error('Fetch API fault:', error);
         if (error.status === 401) {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Please login to view test results!',
-            })
-          );
+          showError('Please login to view test results!');
           navigate('/login');
         } else {
-          dispatch(
-            setAlertBox({
-              open: true,
-              error: true,
-              msg: 'Failed to load test results.',
-            })
-          );
+          showError('Failed to load test results.');
         }
       }
     };
     fetchAPI();
-  }, [navigate, dispatch, id]);
+  }, [navigate, showError, id]);
 
   useEffect(() => {
     setSelectedTest(testData.find((test) => test.id === Number(id)));
@@ -301,7 +284,7 @@ const ViewDetailResult = () => {
       }));
       setIsEditingTranslation((prev) => ({
         ...prev,
-        [questionId]: role === 'admin',
+        [questionId]: userState.role === 'admin',
       }));
       return translation;
     } catch (error) {
@@ -428,7 +411,7 @@ const ViewDetailResult = () => {
           }));
           setIsEditingExplanation((prev) => ({
             ...prev,
-            [question.order]: role === 'admin' ? false : prev[question.order],
+            [question.order]: userState.role === 'admin' ? false : prev[question.order],
           }));
         } else {
           const explanation = await fetchExplanationFromGemini(
@@ -447,12 +430,12 @@ const ViewDetailResult = () => {
           }));
           setIsEditingExplanation((prev) => ({
             ...prev,
-            [question.order]: role === 'admin' ? true : false,
+            [question.order]: userState.role === 'admin' ? true : false,
           }));
         }
       } catch (error) {
         console.error('Error fetching explanation:', error);
-        if (role === 'admin') {
+        if (userState.role === 'admin') {
           alert(`Failed to load explanation: ${error.message}`);
         }
       }
@@ -782,7 +765,7 @@ const ViewDetailResult = () => {
               </button>
               {showTranslations[question.order] && (
                 <div className="script-content">
-                  {role === 'admin' && isEditingTranslation[question.order] ? (
+                  {userState.role === 'admin' && isEditingTranslation[question.order] ? (
                     <textarea
                       value={editedTranslations[question.order] || ''}
                       onChange={(e) => handleTranslationChange(question.order, e.target.value)}
@@ -797,7 +780,7 @@ const ViewDetailResult = () => {
                   ) : (
                     <p>{editedTranslations[question.order] || translateScript}</p>
                   )}
-                  {role === 'admin' && (
+                  {userState.role === 'admin' && (
                     <div style={{ marginTop: '8px' }}>
                       <button
                         className="script-toggle-btn"
@@ -870,7 +853,7 @@ const ViewDetailResult = () => {
               </button>
               {showExplanations[question.order] && (
                 <div className="script-content">
-                  {role === 'admin' && isEditingExplanation[question.order] ? (
+                  {userState.role === 'admin' && isEditingExplanation[question.order] ? (
                     <textarea
                       value={editedExplanations[question.order] || ''}
                       onChange={(e) => handleExplanationChange(question.order, e.target.value)}
@@ -885,7 +868,7 @@ const ViewDetailResult = () => {
                   ) : (
                     <p>{editedExplanations[question.order] || explainQuestion}</p>
                   )}
-                  {role === 'admin' && (
+                  {userState.role === 'admin' && (
                     <div style={{ marginTop: '8px' }}>
                       <button
                         className="script-toggle-btn"
