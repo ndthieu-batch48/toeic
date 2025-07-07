@@ -1175,7 +1175,7 @@ const PracticeTestPage = () => {
           };
         }
         const answerText = answers.map((ans) => `${ans.content}`).join(', ');
-        prompt = ` translate the following multiple-choice options ${answerText}, marked A, B, C, and D, into ${targetLanguage}. Ensure the output maintains the specified format`;
+        prompt = `Translate the following multiple-choice options ${answerText} of a TOEIC question, marked A, B, C, and D, into ${targetLanguage}. The output should be follow the TOEIC question format. Do not explain anything.`;
         translation = await sendPromptToBackend(prompt, languageId);
 
         setQuestionTranslations((prev) => ({

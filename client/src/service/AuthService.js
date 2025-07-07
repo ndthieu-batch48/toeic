@@ -30,7 +30,7 @@ export const refreshTokenService = async (refreshToken) => {
     const res = await axiosBase.post(url, { token: refreshToken });
     return res.data;
   } catch (error) {
-    throw new formatAxiosError(error);
+    throw formatAxiosError(error);
   }
 };
 
@@ -40,7 +40,7 @@ export const logoutUser = async () => {
     const res = await axiosBase.post(url);
     return res.data;
   } catch (error) {
-    throw new formatAxiosError(error);
+    throw formatAxiosError(error);
   }
 };
 
