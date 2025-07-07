@@ -1,0 +1,71 @@
+.button {
+  padding: 8px 16px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  width: 120px;
+  height: 40px;
+  /* border: 2px solid #2777ee; */
+  background-color: transparent;
+  color: #2777ee;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border-radius: 30px;
+  border: none;
+}
+
+.button:hover {
+  background-color: #df4444;
+  color: #fff;
+  border-color: #df4444;
+}
+
+.submit {
+  background-color: #126615;
+  color: white;
+  border: none;
+}
+
+.toggle {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+}
+
+.icon {
+  margin-left: 8px;
+  transition: transform 0.3s ease;
+}
+
+.rotateUp {
+  transform: rotate(180deg);
+}
+
+.question {
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 9999px;
+  border: none;
+}
+
+.answered {
+  background-color: #126615;
+  color: white;
+}
+
+.active {
+  outline: 2px solid #2777ee;
+  outline-offset: 2px;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress {
+  color: inherit;
+}

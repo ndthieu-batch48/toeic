@@ -1,0 +1,10 @@
+# production
+/build
+build/
+
+# dependencies
+node_modules
+.vscode
+.env
+
+

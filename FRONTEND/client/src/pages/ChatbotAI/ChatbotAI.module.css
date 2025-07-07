@@ -1,0 +1,13 @@
+.chatbotContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 80%;
+  height: 80vh; /* Giảm chiều cao xuống */
+  margin: 20px auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}

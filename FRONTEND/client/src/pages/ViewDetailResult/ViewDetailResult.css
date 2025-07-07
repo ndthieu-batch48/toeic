@@ -1,0 +1,372 @@
+/* src/pages/PracticePage.css */
+
+.detailresult-page {
+  display: flex;
+  flex-direction: column;
+  /* background-color: #f9f9f9; */
+  padding: 20px;
+}
+
+.detailresult-page button {
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+.detailresult-page .practice-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 10px 20px;
+  color: black;
+  font-size: 1.2rem; /* Adjusted for better scaling */
+}
+
+.detailresult-page .exit-button {
+  background-color: transparent;
+  color: #df4444;
+  padding: 8px 16px;
+  cursor: pointer;
+  border: 1px solid #df4444;
+  font-weight: bold;
+  font-size: 1.4rem;
+  margin-left: 20px;
+  width: 120px;
+  height: 40px;
+}
+
+.detailresult-page .content-container {
+  display: flex;
+  margin-top: 20px;
+  flex-wrap: wrap; /* Added for better responsiveness */
+}
+
+.sticky-audio-tabs {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  padding: 10px 0;
+}
+
+.audio-fixed {
+  position: fixed !important;
+  top: 100px;
+  left: 0px;
+  width: 100%;
+  padding: 5px 20px;
+  margin: 5px 0;
+  z-index: 999;
+  background: #fff;
+}
+
+.audio-fixed .audio {
+  max-width: 900px;
+}
+
+.detailresult-page .audio-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.detailresult-page .audio-controls label {
+  margin-right: 15px;
+  font-size: 1.2rem; /* Adjusted font size */
+}
+
+.detailresult-page .part-tabs {
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  /* margin-bottom: 20px; */
+}
+
+.detailresult-page .part-tabs button {
+  padding: 8px 16px;
+  background-color: #e0e0e0;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem; /* Adjusted font size */
+}
+
+.detailresult-page .part-tabs .active {
+  background-color: #2777ee;
+  color: #fff;
+}
+
+.detailresult-page .question-content {
+  /* border: 1px solid #ccc; */
+  padding: 15px;
+  border-radius: 5px;
+  font-size: 1.25rem; /* Adjusted font size */
+}
+
+.detailresult-page .question-item {
+  padding: 10px 10px 20px 10px;
+  margin-bottom: 50px;
+  /* background-color: #ccc; */
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border-radius: 10px;
+  /* border: 1px solid #000000; */
+}
+
+.detailresult-page .question-title {
+  padding: 20px;
+  font-weight: bold;
+  font-size: 1.6rem;
+  line-height: 1.5;
+}
+
+.detailresult-page .question-image {
+  max-width: 100%;
+  margin-bottom: 15px;
+}
+
+.detailresult-page .left-section {
+  flex: 2;
+  margin-right: 31%;
+  /* border: 2px solid #ddd; */
+  border-radius: 10px;
+  padding: 10px;
+  background-color: #fff;
+  font-size: 1rem;
+  min-width: 60%;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  position: relative;
+  /* z-index: 9999; */
+}
+
+.detailresult-page .right-section {
+  flex: 1;
+  position: fixed;
+  top: 190px;
+  right: 20px;
+  width: 28%;
+  max-height: calc(100vh - 35vh);
+  overflow-y: auto;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  z-index: 1000;
+  transition: top 0.5s ease;
+}
+
+.detailresult-page .timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 10px 130px;
+  background-color: #f9f9f9;
+}
+
+.detailresult-page .timer p {
+  font-size: 1.2rem; /* Adjusted font size */
+  font-weight: bold;
+  margin: 0;
+  display: inline;
+  white-space: nowrap;
+}
+
+.detailresult-page button:hover {
+  background-color: #df4444;
+  color: #fff;
+  transition: 0.3s;
+}
+
+.detailresult-page .question-nav {
+  width: 100%;
+  padding: 15px;
+  /* border: 1px solid #ccc; */
+  /* background-color: #f3f3f3; */
+  border-radius: 5px;
+}
+
+.detailresult-page .part-section h3 {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #4f4f4f;
+  margin-bottom: 5px;
+}
+
+.detailresult-page .question-numbers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  margin-bottom: 20px;
+}
+
+.detailresult-page .question-number.answered {
+  background-color: #126615;
+  color: white;
+}
+
+.detailresult-page .question-number {
+  padding: 5px;
+  margin: 5px;
+  background-color: white;
+  /* border: 1px solid #ccc; */
+  border: none;
+  box-shadow: 0 0 2px 0 #333;
+  cursor: pointer;
+  font-size: 1.6rem;
+  text-align: center;
+  color: #000;
+}
+
+.detailresult-page .question-number:hover {
+  background-color: #e0e0e0;
+  transition: 0.2s;
+}
+
+.detailresult-page .question-number:focus {
+  outline: none;
+  background-color: #2777ee;
+  color: white;
+}
+
+.detailresult-page .choice-button {
+  background-color: #ffffff;
+  border: 1px solid #000000;
+  color: #000000;
+  font-size: 1rem; /* Adjusted font size */
+}
+
+.detailresult-page .choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: 20px;
+  font-size: 1.4rem;
+  /* cursor: pointer; */
+  /* width: auto; */
+}
+
+.practice-page .choice-label {
+  cursor: pointer;
+  width: auto;
+  padding: 2px;
+}
+
+.practice-page .choice-label:hover {
+  background-color: #85afd84d;
+  transition: 0.3s;
+  border-radius: 30px;
+}
+
+.practice-page .audio {
+  width: 100%;
+  height: 40px;
+  margin-top: 5px;
+}
+
+.detailresult-page .audio {
+  width: 85%;
+}
+
+.detailresult-page .group-name {
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin: 10px 20px;
+  color: #2777ee;
+}
+
+.detailresult-page .group-content .group-paragraph {
+  font-size: 1.6rem;
+  line-height: 1.6;
+  margin: 20px 0;
+  color: #333;
+  border: none;
+  text-align: justify;
+  /* background-color: #ebebeb; */
+  padding: 20px;
+  border-radius: 5px;
+  /* box-shadow: 0 2px 4px rgba(136, 152, 153, 0.1); */
+  max-height: 500px;
+  overflow-y: auto;
+  word-wrap: break-word;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .detailresult-page .content-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .detailresult-page .left-section,
+  .detailresult-page .right-section {
+    flex: 1;
+    margin-right: 0;
+    margin-left: 0;
+  }
+
+  /* Bỏ position fixed khi màn hình nhỏ */
+  .detailresult-page .right-section {
+    position: relative; /* Thay đổi thành relative để phần này có thể di chuyển cùng với nội dung */
+    width: 100%; /* Đảm bảo right-section chiếm 100% chiều rộng */
+    max-height: none; /* Không giới hạn chiều cao nữa */
+  }
+
+  .detailresult-page .practice-header {
+    font-size: 1rem; /* Reduced header font size */
+  }
+
+  .detailresult-page .question-content {
+    font-size: 1rem; /* Adjusted font size for better mobile view */
+  }
+
+  .detailresult-page .audio-controls label {
+    font-size: 1rem; /* Reduced font size for better mobile view */
+  }
+
+  .detailresult-page .timer p {
+    font-size: 1rem; /* Reduced font size for better mobile view */
+  }
+
+  .detailresult-page .submit-button {
+    font-size: 1rem; /* Reduced font size for better mobile view */
+  }
+
+  .detailresult-page .choice-button {
+    font-size: 1rem; /* Reduced font size for better mobile view */
+  }
+}
+
+@media (max-width: 480px) {
+  .detailresult-page .practice-header {
+    font-size: 0.9rem; /* Further reduced for small screens */
+  }
+
+  .detailresult-page .exit-button {
+    font-size: 1rem; /* Reduced font size */
+    padding: 10px 20px; /* Adjusted padding */
+  }
+
+  .detailresult-page .timer {
+    padding: 10px 50px; /* Adjusted padding for smaller screens */
+  }
+
+  .detailresult-page .question-number {
+    font-size: 0.8rem; /* Reduced font size */
+  }
+
+  .detailresult-page .submit-button {
+    font-size: 0.9rem; /* Adjusted font size */
+  }
+}
+
+/* Đổi màu nền của label khi radio button được chọn */
+.detailresult-page .choice-label input[type="radio"]:checked + span {
+  background-color: #7a93d8; /* Màu nền khi chọn */
+  color: white; /* Màu chữ trắng để nổi bật hơn */
+  padding: 1px; /* Thêm khoảng cách trong */
+  border-radius: 5px; /* Bo góc cho label */
+}
+
+/* Đảm bảo radio button có một viền mặc định */
+.detailresult-page .choice-label input[type="radio"] {
+  margin-right: 10px; /* Khoảng cách giữa radio và văn bản */
+}

@@ -1,93 +1,180 @@
-# tma_toeic
+# TOEIC APP
 
+A full-stack web application for TOEIC (Test of English for International Communication) practice and testing.
 
+## Tech Stack
 
-## Getting started
+- **Frontend**: React.js with Redux Toolkit
+- **Backend**: FastAPI (Python)
+- **UI Components**: Material-UI, Bootstrap
+- **Charts**: Chart.js
+- **Authentication**: JWT
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Prerequisites
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Before running this application, make sure you have the following installed:
 
-## Add your files
+- **Node.js** (v16 or higher) - [Download here](https://nodejs.org/)
+- **Python** (v3.8 or higher) - [Download here](https://python.org/)
+- **Git** - [Download here](https://git-scm.com/)
+- **MySQL database** - [Download here](https://dev.mysql.com/downloads/installer/)
+- **Google API key for Gemini AI** - [Create here](https://aistudio.google.com/app/apikey/)
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Project Structure
 
+**The project structure should follow:**
 ```
-cd existing_repo
-git remote add origin https://gitsdc.tma.com.vn/ndthieu-batch48/tma_toeic.git
-git branch -M main
-git push -uf origin main
+TOEIC_APP/
+├── FRONTEND/
+│   └── client/          # React.js frontend application
+|── BACKEND/              
+|   └── fastapi/         # FastAPI backend application
+|   └── django/          # Django backend admin application
+├── DB/
+    └── media/           # Media storage folder
 ```
 
-## Integrate with your tools
+## Getting Started
+- **Create root directory**
+```bash
+mkdir TOEIC_APP 
+cd TOEIC_APP
+```
 
-- [ ] [Set up project integrations](https://gitsdc.tma.com.vn/ndthieu-batch48/tma_toeic/-/settings/integrations)
+#### 1. FRONTEND setup
+💡 Make sure you are inside the TOEIC_APP folder before running the following:
+```bash
+mkdir FRONTEND
+cd FRONTEND
+git clone <client-repository-url>
+```
 
-## Collaborate with your team
+- **Install Dependencies**
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+```bash
+cd client
+npm install
+```
 
-## Test and Deploy
+##### Available Scripts
 
-Use the built-in continuous integration in GitLab.
+- **Development**: Start the development server
+  ```bash
+  npm start
+  ```
+  Runs the app in development mode. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- **Build**: Create a production build
+  ```bash
+  npm run build
+  ```
+  Builds the app for production to the `build` folder.
 
-***
+- **Test**: Run tests
+  ```bash
+  npm test
+  ```
 
-# Editing this README
+- **Linting**: Check and fix code style
+  ```bash
+  npm run lint
+  npm run lint:fix
+  ```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+- **Formatting**: Format code with Prettier
+  ```bash
+  npm run format
+  npm run check:format
+  ```
 
-## Suggestions for a good README
+## 3. FastAPI Backend Setup
+💡 Make sure you are inside the TOEIC_APP folder before running the following:
+```bash
+mkdir BACKEND
+cd BACKEND
+git clone <fastapi-repository-url>
+cd fastapi
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+# Create virtual environment
+python -m venv venv
 
-## Name
-Choose a self-explaining name for your project.
+# Activate virtual environment (Windows)
+call venv\Scripts\activate.bat
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+# For Git Bash or WSL, use:
+source venv/Scripts/activate
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+#### Install Python Dependencies
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```bash
+# Make sure virtual environment is activated
+pip install -r requirements.txt
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+# If requirements.txt doesn't exist, install FastAPI and common dependencies
+pip install fastapi uvicorn python-multipart python-jose[cryptography] passlib[bcrypt] sqlalchemy alembic
+```
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+#### Run the API Server
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```bash
+# Make sure you're in the backend directory and virtual environment is activated
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+The API will be available at [http://localhost:8000](http://localhost:8000)
+API documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs)
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Development Workflow
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### Running Both Frontend and Backend
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+1. **Terminal 1** - Backend:
+   ```bash
+   cd BACKEND/fastapi
+   call venv\Scripts\activate.bat # For window
+   uvicorn main:app --host <your_host> --port <your_port> --reload
+   ```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+2. **Terminal 2** - Frontend:
+   ```bash
+   cd FRONTEND/client
+   npm start
+   ```
 
-## License
-For open source projects, say how it is licensed.
+### Deactivating Virtual Environment
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+When you're done developing:
+
+```bash
+deactivate
+```
+
+## Environment Variables
+
+### Frontend (.env file in FRONTEND/client/)
+```
+REACT_APP_API_URL=YOUR_BACKEND_HOST
+```
+
+### Backend (.env file in BACKEND/)
+```
+MYSQL_HOST = YOUR_HOST
+MYSQL_USER = YOUR_USER
+MYSQL_PASSWORD = YOUR_PASSWORD
+MYSQL_DB = YOUR_DB
+GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY
+
+# This is the recommend setup. Replace with your own path
+MEDIA_DIRECTORY = C:/TOEIC-APP/DB/media 
+```
+
+
+## Additional Notes
+
+- The application uses JWT for authentication
+- Media files should be stored in `C:/TOEIC-APP/DB/media` (Windows)
+- State management is handled by Redux Toolkit
+- The app includes chatbot AI functionality
+- Bootstrap and Material-UI are used for styling
+
