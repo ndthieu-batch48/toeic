@@ -5,7 +5,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AUTH_SUCCESS, FORM_ERRORS } from '../../constants/messages';
 import { useAuth } from '../../context/AuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
-// import * as UserService from '../../service/UserService';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -77,6 +76,10 @@ const LoginPage = () => {
               required
             />
           </div>
+
+          <p className="login-footer">
+            <Link to="/otp">Forgot password?</Link>
+          </p>
 
           <button type="submit" disabled={isLoading} className="login-button">
             {isLoading ? <CircularProgress size={24} /> : 'Login'}

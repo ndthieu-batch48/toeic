@@ -9,6 +9,12 @@ A full-stack web application for TOEIC (Test of English for International Commun
 - **UI Components**: Material-UI, Bootstrap
 - **Charts**: Chart.js
 - **Authentication**: JWT
+- **Gemini**: Google's Generative AI for intelligent features
+  - Text-based Q&A and explanations
+  - Image analysis and description
+  - Multi-language support (Vietnamese, English, Japanese)
+  - TOEIC question generation and feedback
+  - Chatbot functionality for learning assistance
 
 ## Prerequisites
 
