@@ -3,7 +3,7 @@ from app.app import app
 
 if __name__ == "__main__":
     uvicorn.run(
-        "app.app:app",  # Direct reference to app object
+        app,  # Direct reference to app object
         host="0.0.0.0",
         port=8000,
         log_level="debug",

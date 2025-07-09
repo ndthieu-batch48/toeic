@@ -40,7 +40,7 @@ async def login(data: UserLogin):
             detail="Invalid username or password!",
         )
     
-    if not verify_password(data.password, safe_str(user = user["password"])):
+    if not verify_password(data.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password!",

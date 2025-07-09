@@ -5,7 +5,7 @@ import { getAccessToken, getRefreshToken, saveTokens } from '../utils/localStora
 import { axiosBase } from './axiosInstance/axiosInstance';
 
 export const loginUser = async (data) => {
-  const url = `/login`;
+  const url = `/auth/login`;
   try {
     const res = await axiosBase.post(url, data);
     return res.data;
@@ -15,7 +15,7 @@ export const loginUser = async (data) => {
 };
 
 export const registerUser = async (data) => {
-  const url = '/register';
+  const url = '/auth/register';
   try {
     const res = await axiosBase.post(url, data);
     return res.data;
@@ -25,7 +25,7 @@ export const registerUser = async (data) => {
 };
 
 export const refreshTokenService = async (refreshToken) => {
-  const url = '/refresh-token';
+  const url = '/auth/refresh-token';
   try {
     const res = await axiosBase.post(url, { token: refreshToken });
     return res.data;
@@ -35,7 +35,7 @@ export const refreshTokenService = async (refreshToken) => {
 };
 
 export const logoutUser = async () => {
-  const url = '/log-out';
+  const url = '/auth/log-out';
   try {
     const res = await axiosBase.post(url);
     return res.data;

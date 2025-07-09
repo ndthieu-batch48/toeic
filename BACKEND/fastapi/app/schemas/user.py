@@ -41,10 +41,14 @@ class AccessTokenPayload(BaseModel):
     sub: str 
     user_id: str
     role: str
-            
-            
+
+
 class RefreshTokenPayload(BaseModel):
     sub: str
     user_id: str
     role: str
     token_type: str
+
+
+# class ForgotPasswordResponse(BaseModel):
+    
