@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from datetime import timedelta
 
-from app.helpers.safe_type import safe_str
+from pydantic import BaseModel
+
+from app.auth.smtp import send_email_service
 from ...schemas.user import UserCreate, UserLogin, UserResponse, TokenRequest, TokenResponse
 from ...core.security import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from ...database.connection import connect
@@ -112,3 +114,15 @@ async def refresh_token(request: TokenRequest):
         "refresh_token": refresh_token_new,
         "token_type": "bearer",
     }
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+@router.post("/send-mail")
+async def send_mail_endpoint(payload: ForgotPasswordRequest):
+    send_email_service(payload.email, "", "")
+    return {"message": "Email will be sent in background.",  "email": payload.email}
+
+# router.post("/reset-password")
+# async def reset_password(reset_password_token: str, new_password: str):
+#     return

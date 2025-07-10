@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from pyparsing import Dict
 
 from ...schemas.user import UserResponse
 from ...auth.dependencies import get_current_user
@@ -11,7 +12,7 @@ router = APIRouter()
 async def get_user(user_id: int, current_user: dict = Depends(get_current_user)):
     conn = connect()
     cursor = conn.cursor(dictionary=True)
-    
+
     try:
         cursor.execute(GET_USER_BY_ID, (user_id,))
         user = cursor.fetchone()
