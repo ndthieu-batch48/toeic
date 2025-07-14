@@ -44,7 +44,12 @@ def verify_token(token: str):
     except JWTError:
         return None
 
-def create_reset_password_token(user_id: str):
-    expire = datetime.now() + timedelta(minutes= app_config.RESET_PASSWORD_EXPIRES_MINUTES)
-    to_encode = {"sub": str(user_id), "exp": expire}
-    return jwt.encode(to_encode, app_config.SECRET_KEY, algorithm= app_config.ALGORITHM)
+def create_email_action_token(email: str, action: str) -> str:
+    expire = datetime.now() + timedelta(minutes=app_config.RESET_PASSWORD_EXPIRES_MINUTES)
+    to_encode = {
+        "sub": email,
+        "email": email,
+        "action": action,
+        "exp": expire
+    }
+    return jwt.encode(to_encode, app_config.SECRET_KEY, algorithm=app_config.ALGORITHM)

@@ -78,7 +78,7 @@ const LoginPage = () => {
           </div>
 
           <p className="login-footer">
-            <Link to="/otp">Forgot password?</Link>
+            <Link to="/send-reset-password">Forgot password?</Link>
           </p>
 
           <button type="submit" disabled={isLoading} className="login-button">

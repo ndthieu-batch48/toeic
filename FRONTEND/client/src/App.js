@@ -22,8 +22,9 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import PracticeTestPage from './pages/PracticeTestPage/PracticeTestPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
+import SendResetPasswordEmailPage from './pages/ResetPasswordPage/SendResetPasswordEmailPage';
 import ResultPage from './pages/ResultPage/ResultPage';
-import SendOTPPage from './pages/SendOTPPage/SendOTPPage';
 import TestDetailPage from './pages/TestDetailPage/TestDetailPage';
 import TestPage from './pages/TestPage/TestPage';
 import ViewDetailResult from './pages/ViewDetailResult/ViewDetailResult';
@@ -94,7 +95,8 @@ const AppContent = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/test" element={<TestPage />} />
-          <Route path="/otp" element={<SendOTPPage />} />
+          <Route path="/send-reset-password" element={<SendResetPasswordEmailPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route
             path="/detailtest/:id"
             element={

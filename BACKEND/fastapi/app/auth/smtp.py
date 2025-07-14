@@ -1,38 +1,56 @@
-import smtplib
-from ..core.smtp_config import smtp_config
+import aiosmtplib
 from email.message import EmailMessage
+from app.const.email_const import (
+    EMAIL_VERIFY_PLAIN, EMAIL_VERIFY_SUBJECT, EMAIL_VERIFY_TEMPLATE,
+    PASSWORD_RESET_HTML, PASSWORD_RESET_PLAIN, PASSWORD_RESET_SUBJECT
+)
+from app.core.smtp_config import smtp_config
 
-def send_email_service(to_email: str):
-        msg = build_password_reset_email(smtp_config.GMAIL_SMTP_SERVER, to_email, '') 
-        
-        with smtplib.SMTP_SSL(smtp_config.GMAIL_SMTP_SERVER, smtp_config.GMAIL_SMTP_PORT) as smtp:
-            # smtp.starttls()
-            smtp.ehlo()
-            print(smtp_config.GMAIL_SENDER, smtp_config.GMAIL_PASSWORD)
-            smtp.login(smtp_config.GMAIL_SENDER, smtp_config.GMAIL_PASSWORD)
-            smtp.ehlo()
-            smtp.send_message(msg)
+async def send_email_service_async(message: EmailMessage):
+    """Async version of email sending using aiosmtplib"""
+    try:
+        await aiosmtplib.send(
+            message,
+            hostname=smtp_config.GMAIL_SMTP_SERVER,
+            port=smtp_config.GMAIL_SMTP_PORT,
+            start_tls=True,
+            username=smtp_config.GMAIL_SENDER,
+            password=smtp_config.GMAIL_PASSWORD,
+        )
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        raise
 
-
-def build_password_reset_email(sender: str, to_email: str, reset_link: str) -> EmailMessage:
-    msg = EmailMessage()
+def build_password_reset_email(to_email: str, reset_token: str) -> EmailMessage:
+    sender = smtp_config.GMAIL_SENDER
+    reset_link = f"{smtp_config.CLIENT_HOST}/reset-password?token={reset_token}"
     
-    msg["From"] = f"Your App Name {sender}"  # Hiển thị chuyên nghiệp
+    msg = EmailMessage()
+    msg["From"] = f"TMA TOEIC {sender}"
     msg["To"] = to_email
-    msg["Subject"] = "🔐 Reset Your Password"
+    msg["Subject"] = PASSWORD_RESET_SUBJECT
 
-    msg.set_content(f"""
-Hi,
+    # Plain text fallback
+    plain_body = PASSWORD_RESET_PLAIN.format(reset_link=reset_link).strip()
+    html_body = PASSWORD_RESET_HTML.format(reset_link=reset_link)
 
-You (or someone else) requested a password reset for your account.
-To reset your password, please click the link below or paste it into your browser:
+    msg.set_content(plain_body)
+    msg.add_alternative(html_body, subtype="html")
 
-{reset_link}
+    return msg
 
-If you didn’t request this, you can safely ignore this email.
+def build_verify_email_mail(to_email: str, verify_token: str) -> EmailMessage:
+    verify_url = f"{smtp_config.CLIENT_HOST}/verify-email?token={verify_token}"
 
-Thanks,
-Your App Team
-    """.strip())
+    subject = EMAIL_VERIFY_SUBJECT
+    plain_body = EMAIL_VERIFY_PLAIN.format(verify_url=verify_url)
+    html_body = EMAIL_VERIFY_TEMPLATE.format(verify_url=verify_url)
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = smtp_config.GMAIL_SENDER
+    msg["To"] = to_email
+    msg.set_content(plain_body)
+    msg.add_alternative(html_body, subtype="html")
 
     return msg

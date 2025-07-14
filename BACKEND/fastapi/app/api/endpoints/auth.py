@@ -1,13 +1,12 @@
-from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from datetime import timedelta
 
 from pydantic import BaseModel
 
-from app.auth.smtp import send_email_service
 from ...schemas.user import UserCreate, UserLogin, UserResponse, TokenRequest, TokenResponse
 from ...helpers.jwt_helper import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from ...database.connection import connect
-from ...database.queries import LOGIN_QUERY, REGISTER_QUERY_SL, REGISTER_QUERY_IS
+from ...database.queries import LOGIN_QUERY, REGISTER_QUERY_SL, REGISTER_QUERY_IS, CHANGE_PASSWORD_QUERY_UP
 from ...core.app_config import app_config
 
 router = APIRouter()
@@ -115,26 +114,62 @@ async def refresh_token(request: TokenRequest):
         "token_type": "bearer",
     }
 
-class ForgotPasswordRequest(BaseModel):
-    email: str
-    
 class ResetPasswordRequest(BaseModel):
-    newPassword: str
-    
+    token: str
+    new_password: str
 
-@router.post("/send-reset-mail")
-async def send_mail_endpoint(payload: ForgotPasswordRequest):
-    reset_token = create_reset
-    send_email_service(payload.email)
-    return {"message": "Email will be sent in background.",  "email": payload.email}
+@router.put("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    try:
+        payload = verify_token(request.token)
+        if not payload or payload.get("action") != "reset-password":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid or expired reset token"
+            )
 
-@router.post("/verify-reset-token")
-async def verify_reset_token(reset_token: str):
-    payload = verify_reset_token(reset_token)
-    if payload: 
-        return True
+        email = payload.get("email")
+        if not email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid token payload"
+            )
 
-router.post("/reset-password")
-async def reset_password(reset_password_token: str, new_password: str):
-    # Do something with the database
-    return
+        # Add password validation
+        if len(request.new_password) < 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be at least 6 characters long"
+            )
+
+        conn = connect()
+        cursor = conn.cursor(dictionary=True)
+        
+        hashed_password = hash_password(request.new_password)
+        cursor.execute(CHANGE_PASSWORD_QUERY_UP, (hashed_password, email))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update password"
+            )
+        
+        cursor.close()
+        conn.close()
+        
+        return {"message": "Password reset successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while resetting password"
+        )
+    finally:
+        try:
+            cursor.close()
+            conn.close()
+        except:
+            pass

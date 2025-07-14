@@ -44,6 +44,38 @@ export const logoutUser = async () => {
   }
 };
 
+export const sendResetPasswordRequest = async (email) => {
+  const url = '/email/reset-password/request';
+  try {
+    const res = await axiosBase.post(url, { request_email: email });
+    return res.data;
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
+export const verifyResetPasswordRequest = async () => {
+  const url = '/email/reset-password/verify';
+  try {
+    await axiosBase.get(url);
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
+export const resetPassword = async (token, newPassword) => {
+  try {
+    const res = await axiosBase.put('/auth/reset-password', {
+      token: token,
+      new_password: newPassword,
+    });
+
+    return res.data;
+  } catch (error) {
+    throw formatAxiosError(error);
+  }
+};
+
 /**
  * Get a valid (non-expired) access token from storage.
  *

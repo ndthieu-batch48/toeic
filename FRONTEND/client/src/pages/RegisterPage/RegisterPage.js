@@ -40,7 +40,12 @@ const RegisterPage = () => {
     }
   };
 
-  const allowedDomains = [ALLOWED_DOMAINS.GMAIL, ALLOWED_DOMAINS.YAHOO, ALLOWED_DOMAINS.TMA];
+  const allowedDomains = [
+    ALLOWED_DOMAINS.GMAIL,
+    ALLOWED_DOMAINS.YAHOO,
+    ALLOWED_DOMAINS.TMA,
+    ALLOWED_DOMAINS.OUTLOOK,
+  ];
   const handleEmailChange = (e) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
