@@ -4,7 +4,7 @@
       "args": [
         "main:app",
         "--host",
-        "192.168.34.124",
+        "192.168.1.17",
         "--port",
         "8000",
         "--reload"
@@ -20,9 +20,7 @@
     {
       "name": "Launch React App (CRA)",
       "request": "launch",
-      "runtimeArgs": [
-        "--remote-debugging-port=9223"
-      ],
+      "runtimeArgs": ["--remote-debugging-port=9223"],
       "sourceMapPathOverrides": {
         "webpack:///src/*": "${webRoot}/*"
       },

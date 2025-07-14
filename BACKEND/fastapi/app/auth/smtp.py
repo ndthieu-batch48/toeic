@@ -1,28 +1,38 @@
-import logging
 import smtplib
-from ..core.config import settings
-import asyncio
+from ..core.smtp_config import smtp_config
 from email.message import EmailMessage
-# from aiosmtplib import SMTP
 
-mail = "tma-batch48@outlook.com"
-password = settings.SMTP_PASSWORD
-SMTP_SERVER = "smtp-mail.outlook.com" #"smtp.office365.com"
-SMTP_PORT = 587
+def send_email_service(to_email: str):
+        msg = build_password_reset_email(smtp_config.GMAIL_SMTP_SERVER, to_email, '') 
+        
+        with smtplib.SMTP_SSL(smtp_config.GMAIL_SMTP_SERVER, smtp_config.GMAIL_SMTP_PORT) as smtp:
+            # smtp.starttls()
+            smtp.ehlo()
+            print(smtp_config.GMAIL_SENDER, smtp_config.GMAIL_PASSWORD)
+            smtp.login(smtp_config.GMAIL_SENDER, smtp_config.GMAIL_PASSWORD)
+            smtp.ehlo()
+            smtp.send_message(msg)
 
-logger = logging.getLogger(__name__)
 
-def send_email_service(to_email: str, subject: str, body: str):
+def build_password_reset_email(sender: str, to_email: str, reset_link: str) -> EmailMessage:
     msg = EmailMessage()
-    msg["From"] = "your_email@gmail.com"
-    msg["To"] = "receiver@example.com"
-    msg["Subject"] = "Test"
-    msg.set_content("Hello!")
     
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:
-        smtp.starttls()
-        smtp.login(mail, "jxmzlxnbtrxflobc")
-        smtp.send_message(msg)
-        smtp.quit()
-        logger.info(f"Email sent successfully to {to_email}")
-    
+    msg["From"] = f"Your App Name {sender}"  # Hiển thị chuyên nghiệp
+    msg["To"] = to_email
+    msg["Subject"] = "🔐 Reset Your Password"
+
+    msg.set_content(f"""
+Hi,
+
+You (or someone else) requested a password reset for your account.
+To reset your password, please click the link below or paste it into your browser:
+
+{reset_link}
+
+If you didn’t request this, you can safely ignore this email.
+
+Thanks,
+Your App Team
+    """.strip())
+
+    return msg

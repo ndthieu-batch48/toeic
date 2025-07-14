@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 from app.auth.smtp import send_email_service
 from ...schemas.user import UserCreate, UserLogin, UserResponse, TokenRequest, TokenResponse
-from ...core.security import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
+from ...helpers.jwt_helper import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from ...database.connection import connect
 from ...database.queries import LOGIN_QUERY, REGISTER_QUERY_SL, REGISTER_QUERY_IS
-from ...core.config import settings
+from ...core.app_config import app_config
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ async def login(data: UserLogin):
             detail="Invalid username or password!",
         )
     
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={
             "sub": user["username"], 
@@ -117,12 +117,24 @@ async def refresh_token(request: TokenRequest):
 
 class ForgotPasswordRequest(BaseModel):
     email: str
+    
+class ResetPasswordRequest(BaseModel):
+    newPassword: str
+    
 
-@router.post("/send-mail")
+@router.post("/send-reset-mail")
 async def send_mail_endpoint(payload: ForgotPasswordRequest):
-    send_email_service(payload.email, "", "")
+    reset_token = create_reset
+    send_email_service(payload.email)
     return {"message": "Email will be sent in background.",  "email": payload.email}
 
-# router.post("/reset-password")
-# async def reset_password(reset_password_token: str, new_password: str):
-#     return
+@router.post("/verify-reset-token")
+async def verify_reset_token(reset_token: str):
+    payload = verify_reset_token(reset_token)
+    if payload: 
+        return True
+
+router.post("/reset-password")
+async def reset_password(reset_password_token: str, new_password: str):
+    # Do something with the database
+    return

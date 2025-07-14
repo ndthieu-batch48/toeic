@@ -1,13 +1,13 @@
 from mysql.connector.aio import connect
 from contextlib import asynccontextmanager
-from ..core.config import settings
+from ..core.app_config import app_config
 
 config = {
-    "host": settings.MYSQL_HOST,
+    "host": app_config.MYSQL_HOST,
     "port": 3306,
-    "user": settings.MYSQL_USER,
-    "password": settings.MYSQL_PASSWORD,
-    "database": settings.MYSQL_DB,
+    "user": app_config.MYSQL_USER,
+    "password": app_config.MYSQL_PASSWORD,
+    "database": app_config.MYSQL_DB,
 }
 
 @asynccontextmanager

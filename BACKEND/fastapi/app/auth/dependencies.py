@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer
 from typing import Optional
-from ..core.security import verify_token
+from ..helpers.jwt_helper import verify_token
 
 # Cho Swagger UI hiển thị token box (Bearer <token>)
 http_bearer = HTTPBearer(auto_error=False)

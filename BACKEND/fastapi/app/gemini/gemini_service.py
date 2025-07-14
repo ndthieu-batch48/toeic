@@ -7,10 +7,10 @@ import base64
 import re
 import urllib.parse
 from ..database.connection import connect
-from ..core.config import settings
+from ..core.app_config import app_config
 
 # Configure API key
-genai.configure(api_key=settings.GEMINI_API_KEY, transport="rest")
+genai.configure(api_key=app_config.GEMINI_API_KEY, transport="rest")
 
 def ask_gemini(prompt: str, language_id: int = 1) -> str:
     model = genai.GenerativeModel("gemini-2.5-flash")

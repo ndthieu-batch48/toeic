@@ -1,10 +1,10 @@
 import mysql.connector
-from ..core.config import settings
+from ..core.app_config import app_config
 
 def connect():
     return mysql.connector.connect(
-        host=settings.MYSQL_HOST,
-        user=settings.MYSQL_USER,
-        password=settings.MYSQL_PASSWORD,
-        database=settings.MYSQL_DB,
+        host=app_config.MYSQL_HOST,
+        user=app_config.MYSQL_USER,
+        password=app_config.MYSQL_PASSWORD,
+        database=app_config.MYSQL_DB,
     )

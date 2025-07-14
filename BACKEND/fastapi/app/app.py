@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from .api.router import api_router
-from .core.config import settings
+from .core.app_config import app_config
 
 app = FastAPI(title="TOEIC API", version="1.0.0")
 
@@ -18,8 +18,8 @@ app.add_middleware(
 )
 
 # Static files
-os.makedirs(settings.MEDIA_DIRECTORY, exist_ok=True)
-app.mount("/media", StaticFiles(directory=settings.MEDIA_DIRECTORY), name="media")
+os.makedirs(app_config.MEDIA_DIRECTORY, exist_ok=True)
+app.mount("/media", StaticFiles(directory=app_config.MEDIA_DIRECTORY), name="media")
 
 # Include routers
 app.include_router(api_router)
