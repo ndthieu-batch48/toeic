@@ -1,9 +1,9 @@
 import asyncio
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Query, HTTPException
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from app.auth.smtp import build_password_reset_email, build_verify_email_mail, send_email_service_async
+from app.auth.smtp import build_password_reset_email, build_verify_email_mail, send_email_service_async, send_email_sync_wrapper
 from app.core.smtp_config import smtp_config
 from app.helpers.jwt_helper import create_email_action_token, verify_token
 
@@ -41,13 +41,15 @@ async def verify_email_token(token: str):
         return RedirectResponse(url=error_url, status_code=302)
 
 @router.post("/reset-password/request")
-async def send_reset_password_email(payload: EmailServiceRequest):
+async def send_reset_password_email(
+    payload: EmailServiceRequest,
+    background_tasks: BackgroundTasks
+):
     reset_token = create_email_action_token(payload.request_email, "reset-password")
     msg = build_password_reset_email(payload.request_email, reset_token)
-    
-    # Send email asynchronously in background
-    asyncio.create_task(send_email_service_async(msg))
-    
+
+    background_tasks.add_task(send_email_sync_wrapper, msg)
+
     return {"message": f"A password reset link will be sent to {payload.request_email}"}
 
 @router.get("/reset-password/verify", response_model=VerifyTokenResponse)

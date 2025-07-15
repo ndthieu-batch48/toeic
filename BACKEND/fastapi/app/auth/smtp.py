@@ -1,3 +1,4 @@
+import asyncio
 import aiosmtplib
 from email.message import EmailMessage
 from app.const.email_const import (
@@ -20,6 +21,10 @@ async def send_email_service_async(message: EmailMessage):
     except Exception as e:
         print(f"Failed to send email: {e}")
         raise
+
+def send_email_sync_wrapper(message: EmailMessage):
+    """Sync wrapper to run async email sending inside a thread"""
+    asyncio.run(send_email_service_async(message))
 
 def build_password_reset_email(to_email: str, reset_token: str) -> EmailMessage:
     sender = smtp_config.GMAIL_SENDER
