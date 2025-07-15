@@ -1,21 +1,30 @@
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
 
-load_dotenv()
-
-class AppConfig:
-    MYSQL_HOST = os.getenv("MYSQL_HOST")
-    MYSQL_USER = os.getenv("MYSQL_USER")
-    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
-    MYSQL_DB = os.getenv("MYSQL_DB")
+class AppConfig(BaseSettings):
+    MYSQL_HOST: str = ""
+    MYSQL_USER: str = ""
+    MYSQL_PASSWORD: str = ""
+    MYSQL_DB: str = ""
     
-    SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
-    REFRESH_TOKEN_EXPIRE_DAYS = 7
-    RESET_PASSWORD_EXPIRES_MINUTES = 3
+    # Connection pool settings
+    DB_POOL_MIN_SIZE: int = 5
+    DB_POOL_MAX_SIZE: int = 20
+    DB_CONNECT_TIMEOUT: int = 30
+    DB_POOL_RECYCLE: int = 3600
     
-    MEDIA_DIRECTORY = os.getenv("MEDIA_DIRECTORY", r"C:\TOEIC_APP\DB\media")
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    SECRET_KEY: str = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
+    RESET_PASSWORD_EXPIRES_MINUTES: int = 3
+    
+    MEDIA_DIRECTORY: str = r"C:\TOEIC_APP\DB\media"
+    GEMINI_API_KEY: str = ""
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+        extra = "allow"
+        
 app_config = AppConfig()

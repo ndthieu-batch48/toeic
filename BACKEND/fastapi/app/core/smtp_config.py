@@ -1,14 +1,15 @@
-import os
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings 
 
-load_dotenv()
-
-class SmtpConfig:
-    CLIENT_HOST = os.getenv("CLIENT_HOST", '')
-
-    GMAIL_SENDER = os.getenv("GMAIL_SENDER", "")
-    GMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD", "")
-    GMAIL_SMTP_SERVER = "smtp.gmail.com"
-    GMAIL_SMTP_PORT = 587
+class SmtpConfig(BaseSettings):
+    CLIENT_HOST: str = "http://localhost:3000"
+    GMAIL_SENDER: str = ""
+    GMAIL_PASSWORD: str = ""
+    GMAIL_SMTP_SERVER: str = "smtp.gmail.com"
+    GMAIL_SMTP_PORT: int = 587
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+        extra = "allow" 
 
 smtp_config = SmtpConfig()

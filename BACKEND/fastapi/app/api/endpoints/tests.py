@@ -8,7 +8,7 @@ from ...schemas.question import Question, PartQuestionsResponse, TestPartQuestio
 from ...schemas.media import Media
 from ...auth.dependencies import get_current_user
 from ...database.connection import connect
-from ...database.test_pool import get_cursor
+# from ...database.test_pool import get_cursor_from_pool
 from ...database.queries import (
     SELECT_ALL_TESTS_QUERY, 
     GET_PARTS_BY_TEST_QUERY,
@@ -24,12 +24,12 @@ from ...database.queries import (
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Test])
-async def get_all_tests():
-    async with get_cursor() as cursor:
-        await cursor.execute(SELECT_ALL_TESTS_QUERY)
-        results = await cursor.fetchall()
-    return results
+# @router.get("/", response_model=List[Test])
+# async def get_all_tests():
+#     async with get_cursor_from_pool() as (cursor, conn):
+#         await cursor.execute(SELECT_ALL_TESTS_QUERY)
+#         results = await cursor.fetchall()
+#     return results
 
 @router.get("/{test_id}/parts", response_model=List[Part])
 async def get_parts(test_id: int):

@@ -3,11 +3,16 @@ from datetime import timedelta
 
 from pydantic import BaseModel
 
+# from ...database.test_pool import get_cursor_from_pool
+
 from ...schemas.user import UserCreate, UserLogin, UserResponse, TokenRequest, TokenResponse
 from ...helpers.jwt_helper import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from ...database.connection import connect
-from ...database.queries import LOGIN_QUERY, REGISTER_QUERY_SL, REGISTER_QUERY_IS, CHANGE_PASSWORD_QUERY_UP
+from ...database.queries import SELECT_USER_BY_USERNAME, SELECT_USER_BY_EMAIL_OR_USERNAME, CREATE_USER, UPDATE_USER_PASSWORD_BY_EMAIL, CREATE_RESET_PASSWORD_OTP
 from ...core.app_config import app_config
+
+from datetime import datetime
+
 
 router = APIRouter()
 
@@ -15,13 +20,13 @@ router = APIRouter()
 async def register(user: UserCreate):
     conn = connect()
     cursor = conn.cursor()
-    cursor.execute(REGISTER_QUERY_SL, (user.email, user.username))
+    cursor.execute(SELECT_USER_BY_EMAIL_OR_USERNAME, (user.email, user.username))
     existing_user = cursor.fetchone()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email or Username already taken")
 
     hashed_password = hash_password(user.password)
-    cursor.execute(REGISTER_QUERY_IS, (user.username, user.email, hashed_password))
+    cursor.execute(CREATE_USER, (user.username, user.email, hashed_password))
     conn.commit()
     cursor.close()
     conn.close()
@@ -32,7 +37,7 @@ async def register(user: UserCreate):
 async def login(data: UserLogin):
     conn = connect()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(LOGIN_QUERY, (data.username,))
+    cursor.execute(SELECT_USER_BY_USERNAME, (data.username,))
     user = cursor.fetchone()
     
     if not user:
@@ -146,7 +151,7 @@ async def reset_password(request: ResetPasswordRequest):
         cursor = conn.cursor(dictionary=True)
         
         hashed_password = hash_password(request.new_password)
-        cursor.execute(CHANGE_PASSWORD_QUERY_UP, (hashed_password, email))
+        cursor.execute(UPDATE_USER_PASSWORD_BY_EMAIL, (hashed_password, email))
         conn.commit()
         
         if cursor.rowcount == 0:
@@ -173,3 +178,18 @@ async def reset_password(request: ResetPasswordRequest):
             conn.close()
         except:
             pass
+
+    # class TestOtp(BaseModel):
+    #     user_id: int
+    #     code: str
+    #     expires_at: str
+
+    # @router.post("/otp")
+    # async def test_otp(data: TestOtp):
+    #     async with get_cursor_from_pool() as (cursor, conn):
+    #         try:
+    #             await cursor.execute(CREATE_RESET_PASSWORD_OTP, ( data.user_id, data.code , datetime.now()))
+    #         except Exception as e:
+    #             await conn.rollback()
+    #             raise HTTPException(status_code=500, detail=str(e))
+         
