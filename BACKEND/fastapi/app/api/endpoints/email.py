@@ -1,67 +1,165 @@
 import asyncio
-from fastapi import APIRouter, BackgroundTasks, Query, HTTPException
-from fastapi.responses import RedirectResponse
+from datetime import datetime
+from fastapi import APIRouter, BackgroundTasks, Query, HTTPException, Response
+from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
 
-from app.auth.smtp import build_password_reset_email, build_verify_email_mail, send_email_service_async, send_email_sync_wrapper
-from app.core.smtp_config import smtp_config
-from app.helpers.jwt_helper import create_email_action_token, verify_token
+from ...core.app_config import app_config
+from ...database.test_pool import with_transaction
+from ...database.queries.user_queries import (
+    INSERT_RESET_PASSWORD_OTP,
+    DELETE_UNUSED_RESET_PASSWORD_OTP,
+    SELECT_USER_BY_EMAIL,
+    DELETE_UNUSED_VERIFY_EMAIL_OTP,
+    INSERT_VERIFY_EMAIL_OTP,
+    SELECT_VERIFY_EMAIL_OTP_BY_EMAIL,
+    SELECT_RESET_PASSWORD_OTP_BY_EMAIL,
+    UPDATE_USED_VERIFY_EMAIL_OTP,
+    UPDATE_USED_RESET_PASSWORD_OTP,
+)
+from app.helpers.otp_helper import generate_expire_otp
+from app.auth.smtp import build_password_reset_email, build_verify_email_mail, send_email_service_async, build_verify_email_mail_compact
 
 router = APIRouter()
 
 class EmailServiceRequest(BaseModel):
     request_email: str
 
-class VerifyTokenResponse(BaseModel):
-    token: str
+class VerifyOtpServiceRequest(BaseModel):
+    otp: str
+    request_email: str
 
-@router.post("/verify-email")
-async def send_verify_email(payload: EmailServiceRequest):
-    verify_token = create_email_action_token(payload.request_email, "verify-email")
-    msg = build_verify_email_mail(payload.request_email, verify_token)
-    
-    # Send email asynchronously in background
-    asyncio.create_task(send_email_service_async(msg))
-    
-    return {"message": f"A verify email will be sent to {payload.request_email}"}
-
-@router.get("/verify-email")
-async def verify_email_token(token: str):
-    payload = verify_token(token)
-    
-    if payload and payload.get("action") == "verify-email":
-        # TODO: Update user's email_verified status in database
-        # user_email = payload.get("email")
-        # await user_service.mark_email_as_verified(user_email)
+@router.post("/reset-password/otp")
+async def send_reset_password_otp(req: EmailServiceRequest):    
+    otp, otp_expire_time = generate_expire_otp()
+   
+    @with_transaction
+    async def insert_otp(cursor, conn, email):
+        await cursor.execute(SELECT_USER_BY_EMAIL, (email,))
+        user = await cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
         
-        success_url = f"{smtp_config.CLIENT_HOST}/email-verified"
-        return RedirectResponse(url=success_url, status_code=302)
-    else:
-        error_url = f"{smtp_config.CLIENT_HOST}/error?message=Invalid or expired verification token"
-        return RedirectResponse(url=error_url, status_code=302)
+        await cursor.execute(DELETE_UNUSED_RESET_PASSWORD_OTP, (email,))
+        await cursor.execute(INSERT_RESET_PASSWORD_OTP, (email, otp, otp_expire_time))
 
-@router.post("/reset-password/request")
-async def send_reset_password_email(
-    payload: EmailServiceRequest,
-    background_tasks: BackgroundTasks
-):
-    reset_token = create_email_action_token(payload.request_email, "reset-password")
-    msg = build_password_reset_email(payload.request_email, reset_token)
-
-    background_tasks.add_task(send_email_sync_wrapper, msg)
-
-    return {"message": f"A password reset link will be sent to {payload.request_email}"}
-
-@router.get("/reset-password/verify", response_model=VerifyTokenResponse)
-async def verify_reset_token(token: str = Query(..., min_length=10)):
     try:
-        payload = verify_token(token)
-        if payload and payload.get("action") == "reset-password":
-            return {"token": token}
-        else:
-            raise HTTPException(status_code=400, detail="Invalid or expired token")
-    except Exception:
+        await insert_otp(email=req.request_email) # type: ignore
+        
+        expire_display = f"{app_config.OTP_EXPIRES_MINUTES}"
+        msg = build_password_reset_email(req.request_email, otp, expire_display)
+        asyncio.create_task(send_email_service_async(msg))
+        
+        return JSONResponse(
+            status_code=200,
+            content={"message": f"A password reset OTP will be sent to {req.request_email}"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(
             status_code=500, 
-            detail="An error occurred during token verification"
+            detail=f"Error in reset password OTP: {e}"
+        )
+
+@router.post("/reset-password/verify")
+async def verify_reset_password_otp(req: VerifyOtpServiceRequest):    
+   
+    @with_transaction
+    async def verify_otp(cursor, conn, email, otp):
+        await cursor.execute(SELECT_RESET_PASSWORD_OTP_BY_EMAIL, (email,))
+        data = await cursor.fetchone()
+        
+        if not data:
+            raise HTTPException(status_code=400, detail="OTP not found")
+            
+        expires_at = data.get("expires_at")
+        if not expires_at or expires_at < datetime.now():
+            raise HTTPException(status_code=400, detail="OTP expired")
+            
+        if data.get("code") != otp:
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+        await cursor.execute(UPDATE_USED_RESET_PASSWORD_OTP, (email, otp))
+
+    try:
+        await verify_otp(email=req.request_email, otp=req.otp) # type: ignore
+        
+        return JSONResponse(
+            status_code=200,
+            content={"message": f"Reset password OTP is verified {req.request_email}"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error in reset password OTP: {e}"
+        )
+
+@router.post("/verify-email/otp")
+async def send_verify_email_otp(req: EmailServiceRequest):    
+    otp, otp_expire_time = generate_expire_otp()
+   
+    @with_transaction
+    async def insert_otp(cursor, conn, email):
+        await cursor.execute(DELETE_UNUSED_VERIFY_EMAIL_OTP, (email,))
+        await cursor.execute(INSERT_VERIFY_EMAIL_OTP, (email, otp, otp_expire_time))
+
+    try:
+        await insert_otp(email=req.request_email) # type: ignore
+        
+        expire_display = f"{app_config.OTP_EXPIRES_MINUTES}"
+        msg = build_verify_email_mail_compact(req.request_email, otp, expire_display)
+        asyncio.create_task(send_email_service_async(msg))
+        
+        return JSONResponse(
+            status_code=200,
+            content={"message": f"A verification email OTP will be sent to {req.request_email}"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error in verify email OTP: {e}"
+        )
+
+@router.post("/verify-email")
+async def verify_email_otp(req: VerifyOtpServiceRequest):    
+   
+    @with_transaction
+    async def verify_otp(cursor, conn, email, otp):
+        await cursor.execute(SELECT_VERIFY_EMAIL_OTP_BY_EMAIL, (email,))
+        data = await cursor.fetchone()
+        
+        if not data:
+            raise HTTPException(status_code=400, detail="OTP not found")
+            
+        expires_at = data.get("expires_at")
+        if not expires_at or expires_at < datetime.now():
+            raise HTTPException(status_code=400, detail="OTP expired or not found")
+            
+        if data.get("code") != otp:
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+        await cursor.execute(UPDATE_USED_VERIFY_EMAIL_OTP, (email, otp))
+
+    try:
+        await verify_otp(email=req.request_email, otp=req.otp) # type: ignore
+        
+        return JSONResponse(
+            status_code=200,
+            content={"message": f"Email OTP is verified for {req.request_email}"}
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error in verify email OTP: {e}"
         )

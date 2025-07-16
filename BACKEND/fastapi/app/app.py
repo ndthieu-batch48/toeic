@@ -66,11 +66,6 @@ app.include_router(api_router)
 def read_root():
     return {"message": "FastAPI server is running!"}
 
-# Health check endpoints
-@app.get("/health")
-async def health_check():
-    """Basic health check"""
-    return {"status": "healthy", "timestamp": asyncio.get_event_loop().time()}
 
 @app.get("/health/db")
 async def database_health_check():

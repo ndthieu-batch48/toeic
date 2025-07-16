@@ -8,5 +8,5 @@ if __name__ == "__main__":
         port=8000,
         log_level="debug",
         reload=True,
-        workers=4
+        # workers=4
     )

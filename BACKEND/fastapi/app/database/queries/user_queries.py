@@ -8,7 +8,7 @@ SELECT_USER_BY_USERNAME = """
 
 SELECT_USER_BY_EMAIL_OR_USERNAME = "SELECT * FROM toeicapp_user WHERE email = %s OR username = %s"
 
-CREATE_USER = "INSERT INTO toeicapp_user (username, email, password) VALUES (%s, %s, %s)"
+INSERT_USER = "INSERT INTO toeicapp_user (username, email, password) VALUES (%s, %s, %s)"
 
 SELECT_USER_BY_EMAIL = "SELECT * FROM toeicapp_user WHERE email = %s"
 
@@ -24,12 +24,50 @@ UPDATE_USER_PASSWORD_BY_EMAIL = """
   WHERE email = %s
 """
 
-CREATE_RESET_PASSWORD_OTP = """
-    INSERT INTO toeicapp_otp (user_id, code, purpose, expires_at)
+INSERT_RESET_PASSWORD_OTP = """
+    INSERT INTO toeicapp_otp (email, code, purpose, expires_at)
     VALUES (%s, %s, 'reset_password', %s)
 """
 
-CREATE_VERIFY_EMAIL_OTP = """
-    INSERT INTO toeicapp_otp (user_id, code, purpose, expires_at)
+SELECT_RESET_PASSWORD_OTP_BY_EMAIL = """
+    SELECT code, expires_at FROM toeicapp_otp 
+    WHERE email = %s AND purpose = 'reset_password' AND is_used = 0
+"""
+
+UPDATE_USED_RESET_PASSWORD_OTP = """
+    UPDATE TABLE toeicapp_otp
+    SET is_used = 1 
+    WHERE email = %s AND code = %s AND purpose = 'reset_password';
+"""
+
+DELETE_UNUSED_RESET_PASSWORD_OTP = """
+    DELETE FROM toeicapp_otp 
+    WHERE email = %s AND purpose = 'reset_password' AND is_used = 0;
+"""
+
+INSERT_VERIFY_EMAIL_OTP = """
+    INSERT INTO toeicapp_otp (email, code, purpose, expires_at)
     VALUES (%s, %s, 'verify_email', %s)
+"""
+
+SELECT_VERIFY_EMAIL_OTP_BY_EMAIL = """
+    SELECT code, expires_at FROM toeicapp_otp 
+    WHERE email = %s AND purpose = 'verify_email' AND is_used = 0
+"""
+
+UPDATE_USED_VERIFY_EMAIL_OTP = """
+    UPDATE TABLE toeicapp_otp
+    SET is_used = 1 
+    WHERE email = %s AND code = %s AND purpose = 'verify_email';
+"""
+
+DELETE_UNUSED_VERIFY_EMAIL_OTP = """
+    DELETE FROM toeicapp_otp 
+    WHERE email = %s AND purpose = 'verify_email' AND is_used = 0;
+"""
+
+UPDATE_USER_IS_VERIFIED = """
+    UPDATE TABLE toeicapp_user
+    SET is_verified = 1
+    WHERE email = %s;
 """

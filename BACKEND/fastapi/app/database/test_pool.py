@@ -152,18 +152,3 @@ def with_transaction(func):
                 logger.error(f"Transaction rolled back due to error: {e}")
                 raise
     return wrapper
-
-# Retry mechanism for database operations
-async def with_retry(operation, max_retries: int = 3, delay: float = 1.0):
-    """Retry database operations with exponential backoff"""
-    for attempt in range(max_retries):
-        try:
-            return await operation()
-        except Exception as e:
-            if attempt == max_retries - 1:
-                logger.error(f"Operation failed after {max_retries} attempts: {e}")
-                raise
-            
-            wait_time = delay * (2 ** attempt)
-            logger.warning(f"Attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
-            await asyncio.sleep(wait_time)

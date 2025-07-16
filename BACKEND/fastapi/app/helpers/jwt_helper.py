@@ -45,7 +45,7 @@ def verify_token(token: str):
         return None
 
 def create_email_action_token(email: str, action: str) -> str:
-    expire = datetime.now() + timedelta(minutes=app_config.RESET_PASSWORD_EXPIRES_MINUTES)
+    expire = datetime.now() + timedelta(minutes=app_config.OTP_EXPIRES_MINUTES)
     to_encode = {
         "sub": email,
         "email": email,

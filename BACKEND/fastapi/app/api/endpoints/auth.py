@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from ...schemas.user import UserCreate, UserLogin, UserResponse, TokenRequest, TokenResponse
 from ...helpers.jwt_helper import hash_password, verify_password, create_access_token, create_refresh_token, verify_token
 from ...database.connection import connect
-from ...database.queries import SELECT_USER_BY_USERNAME, SELECT_USER_BY_EMAIL_OR_USERNAME, CREATE_USER, UPDATE_USER_PASSWORD_BY_EMAIL, CREATE_RESET_PASSWORD_OTP
+from ...database.queries import SELECT_USER_BY_USERNAME, SELECT_USER_BY_EMAIL_OR_USERNAME, INSERT_USER, UPDATE_USER_PASSWORD_BY_EMAIL, INSERT_RESET_PASSWORD_OTP
 from ...core.app_config import app_config
 
 from datetime import datetime
@@ -26,7 +26,7 @@ async def register(user: UserCreate):
         raise HTTPException(status_code=400, detail="Email or Username already taken")
 
     hashed_password = hash_password(user.password)
-    cursor.execute(CREATE_USER, (user.username, user.email, hashed_password))
+    cursor.execute(INSERT_USER, (user.username, user.email, hashed_password))
     conn.commit()
     cursor.close()
     conn.close()

@@ -17,7 +17,7 @@ class AppConfig(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    RESET_PASSWORD_EXPIRES_MINUTES: int = 3
+    OTP_EXPIRES_MINUTES: int = 3
     
     MEDIA_DIRECTORY: str = r"C:\TOEIC_APP\DB\media"
     GEMINI_API_KEY: str = ""
