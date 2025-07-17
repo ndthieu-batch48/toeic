@@ -47,9 +47,6 @@ class DatabaseManager:
                             
                             # Connection health check
                             pool_recycle=getattr(app_config, 'DB_POOL_RECYCLE', 3600),  # 1 hour
-
-                            # Performance settings
-                            # sql_mode="STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION",
                         )
                         if cls._pool:
                             logger.info(f"Database pool created: min={cls._pool.minsize}, max={cls._pool.maxsize}")

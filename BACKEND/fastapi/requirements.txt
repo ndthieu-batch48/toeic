@@ -42,7 +42,6 @@ pydantic_core==2.33.2
 pyparsing==3.2.3
 python-dotenv==1.1.1
 python-jose==3.5.0
-redis==6.2.0
 requests==2.32.4
 rsa==4.9.1
 six==1.17.0
@@ -55,4 +54,3 @@ typing_extensions==4.14.1
 uritemplate==4.2.0
 urllib3==2.5.0
 uvicorn==0.34.0
-websockets==15.0.1

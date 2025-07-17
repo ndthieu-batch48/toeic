@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pyparsing import Dict
 
-from ...schemas.user import UserResponse
+from ...schemas.auth import UserResponse
+
 from ...auth.dependencies import get_current_user
 from ...database.connection import connect
 from ...database.queries import SELECT_USER_BY_ID
