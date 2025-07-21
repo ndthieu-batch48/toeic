@@ -239,15 +239,15 @@ const PracticeTestPage = () => {
           }, 1000);
         } else {
           const fetchPromises = [
-            fetchData('/questions', true),
-            fetchData('/part', true),
+            fetchData('/tests/questions', true),
+            fetchData('/tests/part', true),
             fetchData(`/tests/${id}/media`, true).then((res) => {
               const normalizedGroupMedia = Array.isArray(res) ? res : res?.res || [];
               setGroupData(normalizedGroupMedia);
               return normalizedGroupMedia;
             }),
-            fetchData('/answer'),
-            fetchData('/testpart'),
+            fetchData('/tests/answer'),
+            fetchData('/tests/testpart'),
             fetchData('/tests'),
             fetchData('/languages', true),
           ];

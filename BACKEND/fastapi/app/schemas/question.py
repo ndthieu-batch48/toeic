@@ -27,8 +27,6 @@ class TestPartQuestion(BaseModel):
     questions: List[Question] 
 
 
-
-
 class Answer2(BaseModel):
     id: int
     content: str

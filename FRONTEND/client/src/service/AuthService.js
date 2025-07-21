@@ -44,8 +44,8 @@ export const logoutUser = async () => {
   }
 };
 
-export const sendResetPasswordRequest = async (email) => {
-  const url = '/email/reset-password/request';
+export const sendResetPasswordOtp = async (email) => {
+  const url = '/auth/reset-password/otp';
   try {
     const res = await axiosBase.post(url, { request_email: email });
     return res.data;
@@ -55,7 +55,7 @@ export const sendResetPasswordRequest = async (email) => {
 };
 
 export const verifyResetPasswordRequest = async () => {
-  const url = '/email/reset-password/verify';
+  const url = '/auth/reset-password/verify';
   try {
     await axiosBase.get(url);
   } catch (error) {

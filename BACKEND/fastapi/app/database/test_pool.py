@@ -40,7 +40,7 @@ class DatabaseManager:
                             # Connection configuration
                             autocommit=False,
                             charset='utf8mb4',
-                            cursorclass=aiomysql.DictCursor,
+                            cursorclass=aiomysql.DictCursor, # Return data as dict type 
                             
                             # Timeout settings
                             connect_timeout=getattr(app_config, 'DB_CONNECT_TIMEOUT', 30),

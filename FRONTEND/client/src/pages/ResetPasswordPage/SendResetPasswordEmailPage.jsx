@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import { useReduxAlert } from '../../hook/useReduxAlert';
-import { sendResetPasswordRequest } from '../../service/AuthService';
+import { sendResetPasswordOtp } from '../../service/AuthService';
 
 const SendResetPasswordEmailPage = () => {
   const { showSuccess, showError } = useReduxAlert();
@@ -55,7 +55,7 @@ const SendResetPasswordEmailPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await sendResetPasswordRequest(email);
+      const response = await sendResetPasswordOtp(email);
       setEmailSent(true);
       setTimeLeft(120);
       setCanResend(false);
@@ -76,7 +76,7 @@ const SendResetPasswordEmailPage = () => {
     setError('');
 
     try {
-      const response = await sendResetPasswordRequest(email);
+      const response = await sendResetPasswordOtp(email);
       setTimeLeft(120);
       setCanResend(false);
       showSuccess(response.message);

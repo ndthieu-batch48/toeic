@@ -202,11 +202,11 @@ const ViewResultUserDo = () => {
         };
 
         const fetchPromises = [
-          fetchData('/questions', true).then((data) => {
+          fetchData('/test/questions', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/part', true).then((data) => {
+          fetchData('/test/part', true).then((data) => {
             updateProgress();
             return data;
           }),
@@ -214,11 +214,11 @@ const ViewResultUserDo = () => {
             updateProgress();
             return res;
           }),
-          fetchData('/answer', false).then((data) => {
+          fetchData('/test/answer', false).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/testpart', false).then((data) => {
+          fetchData('/test/testpart', false).then((data) => {
             updateProgress();
             return data;
           }),
@@ -1205,12 +1205,12 @@ const ViewResultUserDo = () => {
             prev.map((group) =>
               group.id === groupId
                 ? {
-                    ...group,
-                    explain_question: {
-                      ...group.explain_question,
-                      [questionActualId]: res.data.explain_question,
-                    },
-                  }
+                  ...group,
+                  explain_question: {
+                    ...group.explain_question,
+                    [questionActualId]: res.data.explain_question,
+                  },
+                }
                 : group
             )
           );
@@ -1405,9 +1405,9 @@ const ViewResultUserDo = () => {
           prev.map((group) =>
             group.id === mediaId
               ? {
-                  ...group,
-                  translate_script: res.data.translate_content,
-                }
+                ...group,
+                translate_script: res.data.translate_content,
+              }
               : group
           )
         );
@@ -2088,13 +2088,11 @@ const ViewResultUserDo = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${
-                  isCorrect ? 'correct' : ''
-                } ${isIncorrect ? 'incorrect' : ''} ${
-                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${isCorrect ? 'correct' : ''
+                  } ${isIncorrect ? 'incorrect' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                }`}
+                  }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>

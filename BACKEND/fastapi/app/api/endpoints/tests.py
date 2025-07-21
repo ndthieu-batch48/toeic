@@ -2,13 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
 import json
 
-from app.helpers.safe_type import safe_int, safe_str
 from ...schemas.test import Test, Part, TestPart
 from ...schemas.question import Question, PartQuestionsResponse, TestPartQuestion, Answer2, Answer
 from ...schemas.media import Media
 from ...auth.dependencies import get_current_user
 from ...database.connection import connect
-# from ...database.test_pool import get_cursor_from_pool
+from ...database.test_pool import with_transaction, get_cursor
 from ...database.queries import (
     SELECT_ALL_TESTS_QUERY, 
     GET_PARTS_BY_TEST_QUERY,
@@ -24,36 +23,22 @@ from ...database.queries import (
 
 router = APIRouter()
 
-# @router.get("/", response_model=List[Test])
-# async def get_all_tests():
-#     async with get_cursor_from_pool() as (cursor, conn):
-#         await cursor.execute(SELECT_ALL_TESTS_QUERY)
-#         results = await cursor.fetchall()
-#     return results
+@router.get("/", response_model=List[Test])
+async def get_tests():
+    async with get_cursor() as (cursor, _):
+        await cursor.execute(SELECT_ALL_TESTS_QUERY)
+        response = await cursor.fetchall()
+    return response
 
 @router.get("/{test_id}/parts", response_model=List[Part])
-async def get_parts(test_id: int):
-    conn = connect()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(GET_PARTS_BY_TEST_QUERY, (test_id,))
-    parts = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    
-    return [
-        Part(
-            id=safe_int(part["id"]),
-            title=safe_str(part["title"]),
-            part_order=safe_str(part["part_order"]),
-            audio_url=safe_str(part["audio_url"]),
-            questionCount=safe_int(part["questionCount"]),
-            partOrderNum=safe_int(part["partOrderNum"])
-        )
-        for part in parts if isinstance(part, dict)
-    ]
+async def get_parts_by_test_id(test_id: int):
+    async with get_cursor() as (cursor, _):
+        await cursor.execute(GET_PARTS_BY_TEST_QUERY, (test_id,))
+        response = await cursor.fetchall()
+    return response
 
 @router.get("/questions", response_model=List[PartQuestionsResponse])
-async def get_questions(current_user: dict = Depends(get_current_user)):
+async def get_questions(_: dict = Depends(get_current_user)):
     conn = connect()
     cursor = conn.cursor(dictionary=True)
     cursor.execute(

@@ -124,11 +124,11 @@ const FullTestPage = () => {
         };
 
         const fetchPromises = [
-          fetchData('/questions', true).then((data) => {
+          fetchData('/tests/questions', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/part', true).then((data) => {
+          fetchData('/tests/part', true).then((data) => {
             updateProgress();
             return data;
           }),
