@@ -54,10 +54,11 @@ export const sendResetPasswordOtp = async (email) => {
   }
 };
 
-export const verifyResetPasswordRequest = async () => {
+export const verifyResetPasswordRequest = async (otp, email) => {
   const url = '/auth/reset-password/verify';
   try {
-    await axiosBase.get(url);
+    const res = await axiosBase.post(url, { otp: otp, request_email: email });
+    return res.data;
   } catch (error) {
     throw formatAxiosError(error);
   }

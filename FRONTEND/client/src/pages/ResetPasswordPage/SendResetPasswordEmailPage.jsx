@@ -1,34 +1,21 @@
 import CircularProgress from '@mui/material/CircularProgress';
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
 
+import { useOtp } from '../../hook/useOtp';
 import { useReduxAlert } from '../../hook/useReduxAlert';
-import { sendResetPasswordOtp } from '../../service/AuthService';
+import { setOtpEmail } from '../../redux/slices/otpSlice';
 
 const SendResetPasswordEmailPage = () => {
-  const { showSuccess, showError } = useReduxAlert();
-  const [email, setEmail] = useState('');
+  const dispatch = useDispatch();
+  const { showError, showSuccess } = useReduxAlert();
+  const navigate = useNavigate();
+
+  const { sendOtp, isLoading, error: otpError } = useOtp();
+
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [canResend, setCanResend] = useState(true);
-  const [emailSent, setEmailSent] = useState(false);
-
-  useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
-    }
-  }, [timeLeft]);
-
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  const [localEmail, setLocalEmail] = useState('');
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -36,63 +23,44 @@ const SendResetPasswordEmailPage = () => {
   };
 
   const validateForm = () => {
-    if (!email) {
+    if (!localEmail) {
       setError('Please enter your email');
       return false;
     }
-    if (!validateEmail(email)) {
+    if (!validateEmail(localEmail)) {
       setError('Please enter a valid email address');
       return false;
     }
+    dispatch(setOtpEmail(localEmail));
     return true;
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setLocalEmail(value);
+
+    if (validateEmail(value)) {
+      dispatch(setOtpEmail(value));
+    }
+
+    if (error) setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     if (!validateForm()) return;
 
-    setIsLoading(true);
+    const response = await sendOtp();
 
-    try {
-      const response = await sendResetPasswordOtp(email);
-      setEmailSent(true);
-      setTimeLeft(120);
-      setCanResend(false);
+    if (otpError) {
+      setError(otpError);
+      showError(otpError);
+    } else if (response) {
       showSuccess(response.message);
-    } catch (error) {
-      console.error('Error sending reset email:', error);
-      setError('Failed to send reset email. Please try again.');
-      showError('Failed to send reset email. Please try again.');
-    } finally {
-      setIsLoading(false);
+      navigate('/otp');
     }
-  };
-
-  const handleResendEmail = async () => {
-    if (!validateForm()) return;
-
-    setIsResending(true);
-    setError('');
-
-    try {
-      const response = await sendResetPasswordOtp(email);
-      setTimeLeft(120);
-      setCanResend(false);
-      showSuccess(response.message);
-    } catch (error) {
-      console.error('Error resending reset email:', error);
-      setError('Failed to resend reset email. Please try again.');
-      showError('Failed to resend reset email. Please try again.');
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    if (error) setError('');
   };
 
   return (
@@ -107,15 +75,9 @@ const SendResetPasswordEmailPage = () => {
               </p>
 
               <form onSubmit={handleSubmit}>
-                {error && (
+                {(error || otpError) && (
                   <div className="alert alert-danger" role="alert">
-                    {error}
-                  </div>
-                )}
-
-                {emailSent && (
-                  <div className="alert alert-success" role="alert">
-                    <strong>Email sent!</strong> Check your inbox for the reset link.
+                    {error || otpError}
                   </div>
                 )}
 
@@ -124,9 +86,9 @@ const SendResetPasswordEmailPage = () => {
                     type="email"
                     className="form-control form-control-lg"
                     placeholder="Enter your email address"
-                    value={email}
+                    value={localEmail}
                     onChange={handleEmailChange}
-                    disabled={isLoading || isResending}
+                    disabled={isLoading}
                     required
                     style={{ fontSize: '1.5rem', padding: '15px' }}
                   />
@@ -134,7 +96,7 @@ const SendResetPasswordEmailPage = () => {
 
                 <button
                   type="submit"
-                  disabled={isLoading || isResending}
+                  disabled={isLoading}
                   className="btn btn-primary w-100 py-3 mb-3 fs-5">
                   {isLoading ? (
                     <>
@@ -145,30 +107,6 @@ const SendResetPasswordEmailPage = () => {
                     'Send Reset Email'
                   )}
                 </button>
-
-                {emailSent && (
-                  <div className="d-flex justify-content-between align-items-center p-3 bg-light rounded mb-3">
-                    <button
-                      type="button"
-                      onClick={handleResendEmail}
-                      disabled={!canResend || isResending}
-                      className="btn btn-outline-danger btn-sm">
-                      {isResending ? (
-                        <>
-                          <CircularProgress size={16} className="me-1" />
-                          Resending...
-                        </>
-                      ) : (
-                        'Resend Email'
-                      )}
-                    </button>
-                    <small className="text-danger">
-                      {canResend
-                        ? "Didn't receive the email?"
-                        : `Resend in ${formatTime(timeLeft)}`}
-                    </small>
-                  </div>
-                )}
               </form>
 
               <p className="text-center mt-3 mb-0">
