@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import { resetPassword } from '../../service/AuthService';
 
 const ResetPasswordPage = () => {
-  const [searchParams] = useSearchParams();
+  const email = useSelector((state) => state.otp.email);
   const navigate = useNavigate();
-  const token = searchParams.get('token');
 
   const { showSuccess, showError } = useReduxAlert();
   const [newPassword, setNewPassword] = useState('');
@@ -15,11 +15,16 @@ const ResetPasswordPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      showError('Invalid or missing reset token');
+    if (!email) {
+      showError('Session expired. Please start the password reset process again.');
       navigate('/send-reset-password');
     }
-  }, [token, navigate, showError]);
+  }, [email, navigate, showError]);
+
+  if (!email) {
+    navigate('/send-reset-password');
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +42,7 @@ const ResetPasswordPage = () => {
     setSubmitting(true);
 
     try {
-      const res = await resetPassword(token, newPassword);
+      const res = await resetPassword(email, newPassword);
       showSuccess(res.message || 'Password reset successfully');
       setTimeout(() => {
         navigate('/login');
@@ -49,66 +54,86 @@ const ResetPasswordPage = () => {
     }
   };
 
-  if (!token) {
-    return (
-      <div className="container mt-5">
-        <div className="alert alert-danger text-center">
-          Invalid or missing reset token. Redirecting...
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mt-5">
-      <div className="card shadow-sm mx-auto" style={{ maxWidth: '480px' }}>
-        <div className="card-body p-4">
-          <h3 className="mb-4 text-center">🔐 Reset Your Password</h3>
+    <div
+      className="container-fluid d-flex align-items-center justify-content-center bg-light"
+      style={{ minHeight: '70vh' }}>
+      <div className="row w-100 justify-content-center">
+        <div className="col-12 col-sm-8 col-md-6 col-lg-4">
+          <div className="card shadow">
+            <div className="card-body p-4">
+              <div
+                className="container d-flex flex-column align-items-center justify-content-center"
+                style={{ minHeight: '300px' }}>
+                <h2 className="mb-3">🔐 Reset Your Password</h2>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="newPassword" className="form-label">
-                New Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="newPassword"
-                placeholder="Enter new password (min 6 characters)"
-                required
-                minLength="6"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+                <form onSubmit={handleSubmit} className="w-100">
+                  <div className="mb-4">
+                    <label htmlFor="newPassword" className="form-label w-100">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      id="newPassword"
+                      placeholder="Enter new password (min 6 characters)"
+                      required
+                      minLength="6"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={submitting}
+                      style={{
+                        height: '3.5rem',
+                        fontSize: '1.1rem',
+                        fontWeight: '500',
+                        borderRadius: '0.5rem',
+                      }}
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label htmlFor="confirmPassword" className="form-label w-100 mb-3">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      id="confirmPassword"
+                      placeholder="Re-enter new password"
+                      required
+                      minLength="6"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={submitting}
+                      style={{
+                        height: '3.5rem',
+                        fontSize: '1.1rem',
+                        fontWeight: '500',
+                        borderRadius: '0.5rem',
+                      }}
+                    />
+                  </div>
+
+                  <div className="d-flex justify-content-center mb-3">
+                    <button
+                      type="submit"
+                      className="btn btn-primary py-3 px-4 fs-5 w-100"
+                      disabled={submitting}
+                      style={{ borderRadius: '0.5rem' }}>
+                      {submitting ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2"></span>
+                          Resetting...
+                        </>
+                      ) : (
+                        'Reset Password'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-
-            <div className="mb-3">
-              <label htmlFor="confirmPassword" className="form-label">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                className="form-control"
-                id="confirmPassword"
-                placeholder="Re-enter new password"
-                required
-                minLength="6"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-
-            <button type="submit" className="btn btn-primary w-100" disabled={submitting}>
-              {submitting ? (
-                <>
-                  <span className="spinner-border spinner-border-sm me-2"></span>
-                  Resetting...
-                </>
-              ) : (
-                'Reset Password'
-              )}
-            </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

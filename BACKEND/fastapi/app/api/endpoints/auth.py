@@ -133,19 +133,6 @@ async def refresh_token(req: auth_schema.TokenRequest):
 @router.put("/reset-password")
 async def reset_password(request: auth_schema.ResetPasswordRequest):
     try:
-        payload = verify_token(request.otp)
-        if not payload or payload.get("action") != "reset-password":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or expired reset token"
-            )
-
-        email = payload.get("email")
-        if not email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid token payload"
-            )
 
         if len(request.new_password) < 6:
             raise HTTPException(
@@ -153,11 +140,17 @@ async def reset_password(request: auth_schema.ResetPasswordRequest):
                 detail="Password must be at least 6 characters long"
             )
 
+        if not request.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email is required"
+            )
+
         conn = connect()
         cursor = conn.cursor(dictionary=True)
         
         hashed_password = hash_password(request.new_password)
-        cursor.execute(auth_queries.UPDATE_USER_PASSWORD_BY_EMAIL, (hashed_password, email))
+        cursor.execute(auth_queries.UPDATE_USER_PASSWORD_BY_EMAIL, (hashed_password, request.email))
         conn.commit()
         
         if cursor.rowcount == 0:

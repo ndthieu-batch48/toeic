@@ -4,8 +4,6 @@ const otpSlice = createSlice({
   name: 'otp',
   initialState: {
     email: '',
-    purpose: '',
-    status: 'idle',
   },
   reducers: {
     setOtpEmail: (state, action) => {

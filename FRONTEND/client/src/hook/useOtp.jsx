@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 
+import { logError } from '../log/logger';
 import { sendResetPasswordOtp, verifyResetPasswordRequest } from '../service/AuthService';
 
 export const useOtp = () => {
@@ -11,7 +12,6 @@ export const useOtp = () => {
 
   const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [hasSubmittedOtp, setHasSubmittedOtp] = useState(false);
 
   const [error, setError] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -48,19 +48,12 @@ export const useOtp = () => {
       setError(null);
 
       const response = await verifyResetPasswordRequest(otpValue, email);
-
-      // Only set verified if response is successful
-      if (response?.success) {
-        setIsVerified(true);
-      } else {
-        setError('Invalid OTP');
-        setHasSubmittedOtp(false); // ✅ allow retry
-      }
+      setIsVerified(true);
 
       return response;
     } catch (err) {
       setError(err.message || 'Verification failed');
-      setHasSubmittedOtp(false);
+      setIsVerified(false);
     } finally {
       setIsVerifying(false);
     }
@@ -68,13 +61,12 @@ export const useOtp = () => {
 
   const handleOtpSubmit = async (otpString) => {
     setOtp(otpString);
-    setHasSubmittedOtp(true);
     setError(null);
 
     try {
       await verifyOtp(otpString);
     } catch (err) {
-      console.error('OTP verification failed:', err);
+      logError('OTP verification failed:', err);
     }
   };
 
@@ -82,7 +74,6 @@ export const useOtp = () => {
     setOtp('');
     setIsVerified(false);
     setIsVerifying(false);
-    setHasSubmittedOtp(false);
     setError(null);
   };
 

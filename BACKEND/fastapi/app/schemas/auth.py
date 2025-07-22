@@ -1,3 +1,4 @@
+import email
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
@@ -53,7 +54,7 @@ class RefreshTokenRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    otp: str
+    email: str
     new_password: str
 
 
