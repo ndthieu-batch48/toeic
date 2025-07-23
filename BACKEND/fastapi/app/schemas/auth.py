@@ -1,5 +1,4 @@
-import email
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -14,9 +13,15 @@ class RegisterRequest(UserRequestBase):
 
 
 class LoginRequest(BaseModel):
-    username: str
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
     password: str
+
+    @field_validator('email')
+    def validate_username_or_email(cls, v, values):
+        if not v and not values.get('username'):
+            raise ValueError('Either username or email must be provided')
+        return v
 
 
 class UserResponse(BaseModel):

@@ -139,15 +139,15 @@ const FullTestPage = () => {
             setGroupData(normalizedGroupMedia);
             return normalizedGroupMedia;
           }),
-          fetchData('/answer').then((data) => {
+          fetchData('/tests/answer', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/testpart').then((data) => {
+          fetchData('/tests/testpart', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests').then((data) => {
+          fetchData('/tests', true).then((data) => {
             updateProgress();
             return data;
           }),
@@ -571,32 +571,32 @@ const FullTestPage = () => {
             <div className="choices">
               {isContentAnswerPart3to7
                 ? answersForQuestion.map((answer) => (
-                    <label key={answer.id} className="choice-label" style={{ marginBottom: '4px' }}>
-                      <input
-                        type="radio"
-                        name={`question-${question.id}`}
-                        checked={selectedAnswers[question.order] === answer.id}
-                        onChange={() => handleAnswerChange(question.order, answer.id)}
-                      />
-                      {answer.content}
-                    </label>
-                  ))
+                  <label key={answer.id} className="choice-label" style={{ marginBottom: '4px' }}>
+                    <input
+                      type="radio"
+                      name={`question-${question.id}`}
+                      checked={selectedAnswers[question.order] === answer.id}
+                      onChange={() => handleAnswerChange(question.order, answer.id)}
+                    />
+                    {answer.content}
+                  </label>
+                ))
                 : ['A', 'B', 'C', 'D'].map((choice) => {
-                    const answer = answersForQuestion.find((ans) => ans.content.startsWith(choice));
-                    return (
-                      answer && (
-                        <label key={choice} className="choice-label">
-                          <input
-                            type="radio"
-                            name={`question-${question.id}`}
-                            checked={selectedAnswers[question.order] === answer.id}
-                            onChange={() => handleAnswerChange(question.order, answer.id)}
-                          />
-                          {choice}
-                        </label>
-                      )
-                    );
-                  })}
+                  const answer = answersForQuestion.find((ans) => ans.content.startsWith(choice));
+                  return (
+                    answer && (
+                      <label key={choice} className="choice-label">
+                        <input
+                          type="radio"
+                          name={`question-${question.id}`}
+                          checked={selectedAnswers[question.order] === answer.id}
+                          onChange={() => handleAnswerChange(question.order, answer.id)}
+                        />
+                        {choice}
+                      </label>
+                    )
+                  );
+                })}
             </div>
           </div>
         );
@@ -640,11 +640,10 @@ const FullTestPage = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${
-                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                } ${buttonClass}`}
+                  } ${buttonClass}`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>

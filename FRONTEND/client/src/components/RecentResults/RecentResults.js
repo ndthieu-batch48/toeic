@@ -47,7 +47,10 @@ const RecentResults = () => {
       const updatedPoints = {};
       for (const result of recentResults) {
         try {
-          const res = await fetchData(`/generate_result?history_id=${result.history_id}`, true);
+          const res = await fetchData(
+            `/history/generate_result?history_id=${result.history_id}`,
+            true
+          );
           updatedPoints[result.history_id] =
             point_listening[res.right_listening] + point_reading[res.right_reading];
         } catch (error) {

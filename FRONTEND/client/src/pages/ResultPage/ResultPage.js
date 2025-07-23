@@ -29,7 +29,7 @@ const ResultPage = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        fetchData(`/generate_result?history_id=${resultId}`, true).then((res) => {
+        fetchData(`/history/generate_result?history_id=${resultId}`, true).then((res) => {
           if (res) {
             console.log(res);
             setSelectedHistory(res); // Cập nhật trực tiếp selectedHistory
@@ -39,7 +39,7 @@ const ResultPage = () => {
           }
         });
       } catch (error) {
-        logError('ResultPage component', `/generate_result?history_id=${resultId}`, error);
+        logError('ResultPage component', `/history/generate_result?history_id=${resultId}`, error);
       }
     };
     fetchTests();
@@ -61,7 +61,7 @@ const ResultPage = () => {
         <h3>Result Of Test: {id}</h3>
         <div className="container-button">
           <button
-            className="view-answer"
+            className="view-result"
             style={{
               marginRight: '20px',
               color: '#fff',

@@ -9,15 +9,14 @@ import {
   Legend,
 } from 'chart.js';
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-import { fetchData } from '../../service/UserService';
-import { point_listening, point_reading } from '../../components/Data';
-
 import { Line } from 'react-chartjs-2';
 import ReactPaginate from 'react-paginate';
 import './AllUserResultPage.css';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
+import { point_listening, point_reading } from '../../components/Data';
+import { fetchData } from '../../service/UserService';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -46,7 +45,7 @@ const AllUserResultPage = () => {
       if (!user?.id) return;
       setIsLoading(true);
       try {
-        const res = await fetchData(`/get_result?user_id=${user.id}`, true);
+        const res = await fetchData(`/history/results?user_id=${user.id}`, true); // ❌ Changed from '/get_result' to '/history/results'
         const results = Array.isArray(res) ? res : [];
         setAllResultsData(results);
         setFilteredResults(results);
@@ -73,7 +72,10 @@ const AllUserResultPage = () => {
       const listeningCounts = {};
       for (const result of filteredResults) {
         try {
-          const res = await fetchData(`/generate_result?history_id=${result.history_id}`, true);
+          const res = await fetchData(
+            `/history/generate_result?history_id=${result.history_id}`,
+            true
+          ); // ❌ Changed from '/generate_result' to '/history/generate_result'
           updatedPoints[result.history_id] =
             point_listening[res.right_listening] + point_reading[res.right_reading];
           readingCounts[result.history_id] = res.right_reading;

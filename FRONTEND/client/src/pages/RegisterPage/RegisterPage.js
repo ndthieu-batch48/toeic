@@ -17,6 +17,7 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
+  const [isShowPassword, setIsShowPassword] = useState(false);
 
   // Xác nhận đăng ký
   const handleSubmit = async (e) => {
@@ -46,6 +47,7 @@ const RegisterPage = () => {
     ALLOWED_DOMAINS.TMA,
     ALLOWED_DOMAINS.OUTLOOK,
   ];
+
   const handleEmailChange = (e) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
@@ -57,6 +59,10 @@ const RegisterPage = () => {
     } else {
       setEmailError(`Email must end with one of the following: ${allowedDomains.join(', ')}`);
     }
+  };
+
+  const toggleShowPassword = () => {
+    setIsShowPassword((prev) => !prev);
   };
 
   return (
@@ -81,15 +87,30 @@ const RegisterPage = () => {
               onChange={handleEmailChange}
             />
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className="password-input-container">
+              <input
+                type={isShowPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="password-input"
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={toggleShowPassword}
+                disabled={isLoading}>
+                {isShowPassword ? (
+                  <i className="bi bi-eye-slash"></i>
+                ) : (
+                  <i className="bi bi-eye"></i>
+                )}
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={isLoading} className="register-button">
-            {isLoading ? <CircularProgress size={24} /> : 'Regiter'}
+            {isLoading ? <CircularProgress size={24} /> : 'Register'}
           </button>
         </form>
         <p className="register-footer">

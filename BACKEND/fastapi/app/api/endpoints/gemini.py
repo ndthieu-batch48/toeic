@@ -8,7 +8,7 @@ from ...gemini.gemini_service import ask_gemini, ask_gemini_with_image  # Add th
 
 router = APIRouter()
 
-@router.post("/", response_model=dict)
+@router.post("/chat", response_model=dict)
 async def chat(
     request: PromptRequest, current_user: dict = Depends(get_current_user)
 ):

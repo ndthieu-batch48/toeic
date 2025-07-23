@@ -6,13 +6,12 @@ import io
 import base64
 import re
 import urllib.parse
-from pathlib import Path
 from ..database.connection import connect
 import requests
 from google.auth.transport.requests import AuthorizedSession
 import urllib3
 
-# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Cấu hình API key
 genai.configure(api_key="AIzaSyCY8sQenbX5I3IDLl61IxowMiF1AgQidFM", transport="rest")
@@ -20,11 +19,11 @@ genai.configure(api_key="AIzaSyCY8sQenbX5I3IDLl61IxowMiF1AgQidFM", transport="re
 
 original_request = AuthorizedSession.request
 
-# def unsafe_request(self, *args, **kwargs):
-#     kwargs['verify'] = False
-#     return original_request(self, *args, **kwargs)
+def unsafe_request(self, *args, **kwargs):
+    kwargs['verify'] = False
+    return original_request(self, *args, **kwargs)
 
-# AuthorizedSession.request = unsafe_request
+AuthorizedSession.request = unsafe_request
 
 
 def ask_gemini(prompt: str, language_id: int = 1) -> str:
@@ -34,10 +33,6 @@ def ask_gemini(prompt: str, language_id: int = 1) -> str:
         2: "English",
         3: "Japanese"
     }
-    # target_language = language_map.get(language_id, "Vietnamese")
-    
-    # Thêm chỉ thị ngôn ngữ vào prompt
-    # modified_prompt = f"{prompt}\n\nTranslate the response to {target_language}."
     
     model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(prompt)

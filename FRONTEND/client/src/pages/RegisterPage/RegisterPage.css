@@ -46,6 +46,54 @@
   margin-bottom: 16px;
 }
 
+/* Password input container styles */
+.password-input-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  padding: 10px;
+  padding-right: 45px !important; /* Make space for the button */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  color: #666;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.password-toggle-btn:hover {
+  color: #333;
+}
+
+.password-toggle-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.password-toggle-btn i {
+  font-size: 16px;
+}
+
 .register-button {
   width: 100%;
   padding: 10px;

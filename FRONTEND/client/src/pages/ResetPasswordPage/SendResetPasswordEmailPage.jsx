@@ -1,17 +1,19 @@
 import CircularProgress from '@mui/material/CircularProgress';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { useLocalStorage } from '../../hook/useLocalStorage';
 import { useOtp } from '../../hook/useOtp';
 import { useReduxAlert } from '../../hook/useReduxAlert';
-import { setOtpEmail } from '../../redux/slices/otpSlice';
 
 const SendResetPasswordEmailPage = () => {
-  const dispatch = useDispatch();
-  const { showError, showSuccess } = useReduxAlert();
+  const [, setLocalData] = useLocalStorage('resetPasswordSession', {
+    email: '',
+    resetToken: '',
+  });
   const navigate = useNavigate();
 
+  const { showError, showSuccess } = useReduxAlert();
   const { sendOtp, isLoading, error: otpError } = useOtp();
 
   const [error, setError] = useState('');
@@ -31,17 +33,13 @@ const SendResetPasswordEmailPage = () => {
       setError('Please enter a valid email address');
       return false;
     }
-    dispatch(setOtpEmail(localEmail));
+
     return true;
   };
 
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setLocalEmail(value);
-
-    if (validateEmail(value)) {
-      dispatch(setOtpEmail(value));
-    }
 
     if (error) setError('');
   };
@@ -52,8 +50,12 @@ const SendResetPasswordEmailPage = () => {
 
     if (!validateForm()) return;
 
-    const response = await sendOtp();
+    setLocalData((prev) => ({
+      ...prev,
+      email: localEmail,
+    }));
 
+    const response = await sendOtp(localEmail);
     if (otpError) {
       setError(otpError);
       showError(otpError);

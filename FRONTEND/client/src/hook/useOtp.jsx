@@ -1,42 +1,48 @@
-import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 
+import { useLocalStorage } from '../hook/useLocalStorage';
 import { logError } from '../log/logger';
 import { sendResetPasswordOtp, verifyResetPasswordRequest } from '../service/AuthService';
 
+const COUNTDOWN_DURATION = 120;
+
 export const useOtp = () => {
-  const email = useSelector((state) => state.otp.email);
-  const [otp, setOtp] = useState('');
+  const [localData] = useLocalStorage('resetPasswordSession', {
+    email: '',
+    resetToken: '',
+  });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [canResend, setCanResend] = useState(false);
-
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-
+  const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(0);
 
+  const [timeLeft, setTimeLeft] = useState(COUNTDOWN_DURATION);
+
+  // Countdown timer effect
   useEffect(() => {
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
-    } else {
-      setCanResend(true);
     }
   }, [timeLeft]);
 
-  const sendOtp = async () => {
+  const canResend = timeLeft === 0;
+
+  const sendOtp = async (email) => {
     try {
       setIsLoading(true);
       setError(null);
 
       const response = await sendResetPasswordOtp(email);
-      setTimeLeft(120);
-      setCanResend(false);
-      resetOtp();
+
+      setIsVerified(false);
+      setTimeLeft(COUNTDOWN_DURATION); // Reset countdown when sending new OTP
+
       return response;
     } catch (error) {
       setError(error.message);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -47,48 +53,47 @@ export const useOtp = () => {
       setIsVerifying(true);
       setError(null);
 
-      const response = await verifyResetPasswordRequest(otpValue, email);
+      const response = await verifyResetPasswordRequest(otpValue, localData.email);
       setIsVerified(true);
 
       return response;
     } catch (err) {
       setError(err.message || 'Verification failed');
-      setIsVerified(false);
+      throw err;
     } finally {
       setIsVerifying(false);
     }
   };
 
   const handleOtpSubmit = async (otpString) => {
-    setOtp(otpString);
     setError(null);
 
     try {
-      await verifyOtp(otpString);
+      await verifyOtp(otpString.trim());
     } catch (err) {
       logError('OTP verification failed:', err);
     }
   };
 
   const resetOtp = () => {
-    setOtp('');
-    setIsVerified(false);
+    setIsLoading(false);
     setIsVerifying(false);
     setError(null);
+    setIsVerified(false);
   };
 
   return {
-    otp,
     isLoading,
-    canResend,
     error,
-    isVerified,
     isVerifying,
+    canResend,
+
+    // local session
+    isVerified,
     timeLeft,
+
     sendOtp,
     resetOtp,
     handleOtpSubmit,
   };
 };
-
-export default useOtp;

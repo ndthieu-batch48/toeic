@@ -8,7 +8,7 @@ export async function sendPromptToBackend(prompt, languageId = 1) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/chat`, {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/gemini/chat`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ prompt, language_id: languageId }),
@@ -36,7 +36,7 @@ export async function sendPromptWithImageToBackend(prompt, media_id, languageId 
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/chat-with-image`, {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/gemini/chat-with-image`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ prompt, id: media_id, language_id: languageId }),

@@ -34,10 +34,10 @@ const TestDetailPage = () => {
         const tests = await fetchData('/tests');
         setTestInfo(tests.find((test) => test.id === Number(id)));
 
-        const parts = await fetchData('/part', true);
+        const parts = await fetchData('/tests/part', true);
         setPartData(parts);
 
-        const testParts = await fetchData('/testpart');
+        const testParts = await fetchData('/tests/testpart');
         setTestPartData(testParts);
       } catch (error) {
         logError('TEST DETAIL PAGE', 'LOGGGG', error);

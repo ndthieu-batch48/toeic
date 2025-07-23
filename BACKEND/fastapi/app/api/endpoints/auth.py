@@ -47,7 +47,9 @@ async def register(user: auth_schema.RegisterRequest):
 async def login(req: auth_schema.LoginRequest):
     conn = connect()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute(auth_queries.SELECT_USER_BY_USERNAME_OR_EMAIL, (req.username, req.email))
+    
+    credential = req.username if req.username else req.email
+    cursor.execute(auth_queries.SELECT_USER_BY_USERNAME_OR_EMAIL, (credential, credential))
     user = cursor.fetchone()
     
     if not user:

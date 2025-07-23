@@ -1,25 +1,25 @@
-import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useLocalStorage } from '../../hook/useLocalStorage';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import { resetPassword } from '../../service/AuthService';
 
 const ResetPasswordPage = () => {
-  const email = useSelector((state) => state.otp.email);
   const navigate = useNavigate();
+
+  const [localData, , clearLocalData] = useLocalStorage('resetPasswordSession', {
+    email: '',
+    resetToken: '',
+  });
+  const email = localData.email;
 
   const { showSuccess, showError } = useReduxAlert();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!email) {
-      showError('Session expired. Please start the password reset process again.');
-      navigate('/send-reset-password');
-    }
-  }, [email, navigate, showError]);
+  const [isShowPassword, setIsShowPassword] = useState(false);
+  const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
   if (!email) {
     navigate('/send-reset-password');
@@ -43,6 +43,7 @@ const ResetPasswordPage = () => {
 
     try {
       const res = await resetPassword(email, newPassword);
+      clearLocalData();
       showSuccess(res.message || 'Password reset successfully');
       setTimeout(() => {
         navigate('/login');
@@ -52,6 +53,14 @@ const ResetPasswordPage = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toggleShowPassword = () => {
+    setIsShowPassword((prev) => !prev);
+  };
+
+  const toggleShowConfirmPassword = () => {
+    setIsShowConfirmPassword((prev) => !prev);
   };
 
   return (
@@ -72,46 +81,82 @@ const ResetPasswordPage = () => {
                     <label htmlFor="newPassword" className="form-label w-100">
                       New Password
                     </label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      id="newPassword"
-                      placeholder="Enter new password (min 6 characters)"
-                      required
-                      minLength="6"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      disabled={submitting}
-                      style={{
-                        height: '3.5rem',
-                        fontSize: '1.1rem',
-                        fontWeight: '500',
-                        borderRadius: '0.5rem',
-                      }}
-                    />
+                    <div className="position-relative">
+                      <input
+                        type={isShowPassword ? 'text' : 'password'}
+                        className="form-control"
+                        id="newPassword"
+                        placeholder="Enter new password (min 6 characters)"
+                        required
+                        minLength="6"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        disabled={submitting}
+                        style={{
+                          height: '3.5rem',
+                          fontSize: '1.1rem',
+                          fontWeight: '500',
+                          borderRadius: '0.5rem',
+                          paddingRight: '3rem',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+                        onClick={toggleShowPassword}
+                        disabled={submitting}
+                        style={{
+                          right: '0.5rem',
+                          zIndex: 10,
+                        }}>
+                        {isShowPassword ? (
+                          <i className="bi bi-eye-slash fs-5"></i>
+                        ) : (
+                          <i className="bi bi-eye fs-5"></i>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mb-4">
                     <label htmlFor="confirmPassword" className="form-label w-100 mb-3">
                       Confirm New Password
                     </label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      id="confirmPassword"
-                      placeholder="Re-enter new password"
-                      required
-                      minLength="6"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      disabled={submitting}
-                      style={{
-                        height: '3.5rem',
-                        fontSize: '1.1rem',
-                        fontWeight: '500',
-                        borderRadius: '0.5rem',
-                      }}
-                    />
+                    <div className="position-relative">
+                      <input
+                        type={isShowConfirmPassword ? 'text' : 'password'}
+                        className="form-control"
+                        id="confirmPassword"
+                        placeholder="Re-enter new password"
+                        required
+                        minLength="6"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={submitting}
+                        style={{
+                          height: '3.5rem',
+                          fontSize: '1.1rem',
+                          fontWeight: '500',
+                          borderRadius: '0.5rem',
+                          paddingRight: '3rem',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+                        onClick={toggleShowConfirmPassword}
+                        disabled={submitting}
+                        style={{
+                          right: '0.5rem',
+                          zIndex: 10,
+                        }}>
+                        {isShowConfirmPassword ? (
+                          <i className="bi bi-eye-slash fs-5"></i>
+                        ) : (
+                          <i className="bi bi-eye fs-5"></i>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="d-flex justify-content-center mb-3">

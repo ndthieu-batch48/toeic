@@ -191,7 +191,7 @@ const ViewResultUserDo = () => {
       try {
         setIsLoadingAll(true);
         setLoadingProgress(0);
-        const totalRequests = 7;
+        const totalRequests = 8; // Updated count
         let completedRequests = 0;
 
         const updateProgress = () => {
@@ -202,11 +202,11 @@ const ViewResultUserDo = () => {
         };
 
         const fetchPromises = [
-          fetchData('/test/questions', true).then((data) => {
+          fetchData('/tests/questions', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/test/part', true).then((data) => {
+          fetchData('/tests/part', true).then((data) => {
             updateProgress();
             return data;
           }),
@@ -214,11 +214,13 @@ const ViewResultUserDo = () => {
             updateProgress();
             return res;
           }),
-          fetchData('/test/answer', false).then((data) => {
+          fetchData('/tests/answer', false).then((data) => {
+            // ❌ Changed from '/test/answer' to '/tests/answer'
             updateProgress();
             return data;
           }),
-          fetchData('/test/testpart', false).then((data) => {
+          fetchData('/tests/testpart', false).then((data) => {
+            // ❌ Changed from '/tests/testpart' to '/tests/testpart'
             updateProgress();
             return data;
           }),
@@ -227,10 +229,12 @@ const ViewResultUserDo = () => {
             return data;
           }),
           fetchData('/history', true).then((data) => {
+            // ✅ Correct (history router)
             updateProgress();
             return data;
           }),
           fetchData('/languages', true).then((data) => {
+            // ✅ Correct (languages router)
             updateProgress();
             return data;
           }),
@@ -572,7 +576,7 @@ const ViewResultUserDo = () => {
         // Kiểm tra database trước
         try {
           const res = await fetchData(
-            `/translate?media_id=${groupId}&question_id=${groupId}&language_id=${languageId}`,
+            `/translation/translate?media_id=${groupId}&question_id=${groupId}&language_id=${languageId}`,
             true
           );
           if (res.success && res.data && res.data.translate_content) {
@@ -947,7 +951,7 @@ const ViewResultUserDo = () => {
     // Kiểm tra database trước
     try {
       const response = await fetchData(
-        `/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
+        `/translation/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
         true
       );
       if (
@@ -1085,7 +1089,7 @@ const ViewResultUserDo = () => {
         translate_script: cleanTranslation,
         language_id: languageId,
       };
-      const res = await postData('/translate', payload, true);
+      const res = await postData('/translation/translate', payload, true);
       if (res.success) {
         showSuccess('Bản dịch đã được lưu thành công!');
         setIsEditingTranslation((prev) => ({
@@ -1118,7 +1122,7 @@ const ViewResultUserDo = () => {
   const fetchTranslationFromDatabase = async (mediaId, questionId, languageId) => {
     try {
       const response = await fetchData(
-        `/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
+        `/translation/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
         true
       );
       if (
@@ -1139,7 +1143,7 @@ const ViewResultUserDo = () => {
   const fetchExplanationFromDatabase = async (questionId, mediaId, languageId) => {
     try {
       const response = await fetchData(
-        `/explain?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
+        `/translation/explain?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
         true
       );
       if (
@@ -1197,7 +1201,7 @@ const ViewResultUserDo = () => {
         explain_question: explanationContent || editedExplanations[questionId],
         language_id: languageId,
       };
-      const res = await postData('/explain', payload, true);
+      const res = await postData('/translation/explain', payload, true);
       if (res.success) {
         preserveScrollPosition(() => {
           setIsEditingExplanation((prev) => ({ ...prev, [questionId]: false }));
@@ -1286,7 +1290,7 @@ const ViewResultUserDo = () => {
       const translation = await sendPromptWithImageToBackend(prompt, mediaId, languageId);
 
       // Kiểm tra nếu translation chứa Base64
-      const isBase64 = translation.match(/^data:image\/[a-zA-Z]+;base64,/);
+      const isBase64 = translation.match(/^data:image\/[aA-zZ]+;base64,/);
       if (isBase64) {
         console.error('Image translation contains Base64 data, discarding...');
         return 'Lỗi: API trả về dữ liệu ảnh thay vì bản dịch.';
@@ -1391,7 +1395,7 @@ const ViewResultUserDo = () => {
       };
 
       console.log('Saving translation payload:', payload);
-      const res = await postData('/translate', payload, true);
+      const res = await postData('/translation/translate', payload, true);
       console.log('Save response:', res);
 
       if (!res.success) {
@@ -1445,7 +1449,7 @@ const ViewResultUserDo = () => {
     if (!isShowing && mediaId && !isNaN(Number(mediaId))) {
       console.log('Checking database for image translation...');
       try {
-        const res = await fetchData(`/translate?media_id=${mediaId}&question_id=${mediaId}`, true);
+        const res = await fetchData(`/translation/translate?media_id=${mediaId}&question_id=${mediaId}`, true);
         if (res.success && res.data) {
           const cleanTranslation = extractTranslationContent(res.data.translate_content);
           setImageTranslations((prev) => ({

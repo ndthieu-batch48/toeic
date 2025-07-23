@@ -11,20 +11,35 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { showSuccess, showError } = useReduxAlert();
-  const [username, setUsername] = useState('');
+  const [credential, setCredential] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isShowPassword, setIsShowPassword] = useState(false);
+
+  // Email validation regex
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const validateForm = () => {
-    if (!username.trim()) {
+    if (!credential.trim()) {
       setError(FORM_ERRORS.REQUIRED_FIELD);
       return false;
     }
+
     if (!password.trim()) {
       setError(FORM_ERRORS.REQUIRED_FIELD);
       return false;
     }
+
+    const isEmail = credential.includes('@');
+    if (isEmail && !isValidEmail(credential)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
     return true;
   };
 
@@ -34,8 +49,14 @@ const LoginPage = () => {
 
     if (!validateForm()) return;
     setIsLoading(true);
+
     try {
-      await login({ username, password });
+      const isEmail = credential.includes('@');
+      const loginData = isEmail
+        ? { email: credential, password }
+        : { username: credential, password };
+
+      await login(loginData);
       showSuccess(AUTH_SUCCESS.LOGIN_SUCCESS);
       navigate('/');
     } catch (error) {
@@ -46,6 +67,10 @@ const LoginPage = () => {
     }
   };
 
+  const toggleShowPassword = () => {
+    setIsShowPassword((prev) => !prev);
+  };
+
   return (
     <div className="login-container">
       <div className="login-form">
@@ -54,12 +79,12 @@ const LoginPage = () => {
           {error && <div className="error-message">{error}</div>}
 
           <div className="login-form-group">
-            <label>User name</label>
+            <label>User name or Email</label>
             <input
               type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your User name or Email"
+              value={credential}
+              onChange={(e) => setCredential(e.target.value)}
               disabled={isLoading}
               required
             />
@@ -67,14 +92,28 @@ const LoginPage = () => {
 
           <div className="login-form-group">
             <label>Password</label>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              required
-            />
+            <div className="password-input-container">
+              <input
+                type={isShowPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                required
+                className="password-input"
+              />
+              <button
+                type="button"
+                className="password-toggle-btn"
+                onClick={toggleShowPassword}
+                disabled={isLoading}>
+                {isShowPassword ? (
+                  <i className="bi bi-eye-slash"></i>
+                ) : (
+                  <i className="bi bi-eye"></i>
+                )}
+              </button>
+            </div>
           </div>
 
           <p className="login-footer">

@@ -135,11 +135,13 @@ const ViewDetailResult = () => {
             updateProgress();
             return res;
           }),
-          fetchData('/answer').then((data) => {
+          fetchData('/tests/answer').then((data) => {
+            // ❌ Changed from '/answer' to '/tests/answer'
             updateProgress();
             return data;
           }),
-          fetchData('/testpart').then((data) => {
+          fetchData('/tests/testpart').then((data) => {
+            // ❌ Changed from '/testpart' to '/tests/testpart'
             updateProgress();
             return data;
           }),
@@ -470,7 +472,7 @@ const ViewDetailResult = () => {
         translate_script: editedTranslations[questionId],
       };
       console.log('Saving payload:', payload);
-      const res = await postData('/translate', payload, true);
+      const res = await postData('/translation/translate', payload, true);
       console.log('Save response:', res);
       if (res.success) {
         alert('Translation saved successfully!');
@@ -524,7 +526,7 @@ const ViewDetailResult = () => {
         explain_question: editedExplanations[questionId],
       };
       console.log('Saving explanation payload:', payload);
-      const res = await postData('/explain', payload, true);
+      const res = await postData('/translation/explain', payload, true);
       console.log('Save explanation response:', res);
       if (res.data.message === 'Explanation updated successfully') {
         alert('Explanation saved successfully!');
@@ -936,8 +938,8 @@ const ViewDetailResult = () => {
               <button
                 key={questionId}
                 className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
-                    ? 'active'
-                    : ''
+                  ? 'active'
+                  : ''
                   }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}

@@ -255,15 +255,15 @@ const PracticeTestPage = () => {
           const totalFetches = fetchPromises.length;
           let completedFetches = 0;
 
-          // Cập nhật phần trăm dựa trên số fetch hoàn thành
+          // Update progress based on completed fetches
           const updateProgress = () => {
             completedFetches += 1;
-
-            const progress = Math.min(Math.round((completedFetches / totalFetches) * 80) + 10, 90); // Bắt đầu từ 10%, tối đa 90%
+            const progress = Math.min(Math.round((completedFetches / totalFetches) * 80) + 10, 90);
             setLoadingProgress(progress);
+            console.log(`Progress updated: ${progress}%`);
           };
 
-          // Gắn cập nhật phần trăm cho mỗi promise
+          // Attach progress update to each promise
           const promisesWithProgress = fetchPromises.map((promise) =>
             promise
               .then((result) => {
@@ -272,18 +272,18 @@ const PracticeTestPage = () => {
               })
               .catch((error) => {
                 console.error('Fetch failed:', error);
-                updateProgress(); // Vẫn tăng progress để không bị kẹt
+                updateProgress(); // Still increase progress to avoid getting stuck
                 throw error;
               })
           );
 
-          // Bắt đầu từ 10%
+          // Start from 10%
           setLoadingProgress(10);
 
           [questions, parts, groupMedia, answers, testParts, tests, languages] =
             await Promise.all(promisesWithProgress);
 
-          // Xử lý languages để đảm bảo là mảng
+          // Process languages to ensure it's an array
           const normalizedLanguages = Array.isArray(languages?.data)
             ? languages.data
             : Array.isArray(languages)
@@ -783,7 +783,7 @@ const PracticeTestPage = () => {
     if (!isShowing && groupId && !isNaN(Number(groupId))) {
       try {
         const res = await fetchData(
-          `/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
+          `/translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
 
@@ -895,7 +895,7 @@ const PracticeTestPage = () => {
         }),
         language_id: languageId,
       };
-      const res = await postData('/translate', payload, true);
+      const res = await postData('/translation/translate', payload, true);
       if (res.success) {
         alert('Translation saved successfully!');
         setIsEditingTranslation((prev) => ({
@@ -1093,7 +1093,7 @@ const PracticeTestPage = () => {
     if (!isShowing && mediaId && !isNaN(Number(mediaId))) {
       try {
         const res = await fetchData(
-          `/translate?media_id=${mediaId}&question_id=${mediaId}&&language_id=${languageId}`,
+          `/translation/translate?media_id=${mediaId}&question_id=${mediaId}&&language_id=${languageId}`,
           true
         );
         if (res.success && res.data) {
@@ -1307,7 +1307,7 @@ const PracticeTestPage = () => {
     if (!isShowing && groupId && !isNaN(Number(groupId))) {
       try {
         const res = await fetchData(
-          `/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
+          `/translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
         if (res.success && res.data) {
@@ -1335,7 +1335,7 @@ const PracticeTestPage = () => {
       if (
         translation.question &&
         translation.question !==
-          `Lỗi khi dịch câu hỏi hoặc đáp án sang ${languageMap[languageId] || 'Vietnamese'}. Vui lòng thử lại.`
+        `Lỗi khi dịch câu hỏi hoặc đáp án sang ${languageMap[languageId] || 'Vietnamese'}. Vui lòng thử lại.`
       ) {
         await handleSaveQuestionTranslation(questionId, groupId, translation.question, languageId);
       }
@@ -1430,7 +1430,7 @@ const PracticeTestPage = () => {
         language_id: languageId,
       };
 
-      const res = await postData('/translate', payload, true);
+      const res = await postData('/translation/translate', payload, true);
 
       if (res.success) {
         setQuestionTranslations((prev) => ({
@@ -1453,7 +1453,7 @@ const PracticeTestPage = () => {
           [questionId]: false,
         }));
         const translationRes = await fetchData(
-          `/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
+          `/translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
         if (translationRes.success) {
@@ -1461,9 +1461,9 @@ const PracticeTestPage = () => {
             prev.map((group) =>
               group.id === Number(groupId)
                 ? {
-                    ...group,
-                    translate_script: JSON.stringify(translationRes.data),
-                  }
+                  ...group,
+                  translate_script: JSON.stringify(translationRes.data),
+                }
                 : group
             )
           );
@@ -1473,9 +1473,9 @@ const PracticeTestPage = () => {
             cachedData.groupMedia = cachedData.groupMedia.map((group) =>
               group.id === Number(groupId)
                 ? {
-                    ...group,
-                    translate_script: JSON.stringify(translationRes.data),
-                  }
+                  ...group,
+                  translate_script: JSON.stringify(translationRes.data),
+                }
                 : group
             );
             await set(cacheKey, cachedData);
@@ -1640,32 +1640,32 @@ const PracticeTestPage = () => {
             <div className="choices">
               {isQuestionContentValid
                 ? answersForQuestion.map((answer) => (
-                    <label key={answer.id} className="choice-label" style={{ marginBottom: '4px' }}>
-                      <input
-                        type="radio"
-                        name={`question-${question.id}`}
-                        checked={selectedAnswers[question.order] === answer.id}
-                        onChange={() => handleAnswerChange(question.order, answer.id)}
-                      />
-                      {answer.content}
-                    </label>
-                  ))
+                  <label key={answer.id} className="choice-label" style={{ marginBottom: '4px' }}>
+                    <input
+                      type="radio"
+                      name={`question-${question.id}`}
+                      checked={selectedAnswers[question.order] === answer.id}
+                      onChange={() => handleAnswerChange(question.order, answer.id)}
+                    />
+                    {answer.content}
+                  </label>
+                ))
                 : ['A', 'B', 'C', 'D'].map((choice) => {
-                    const answer = answersForQuestion.find((ans) => ans.content.startsWith(choice));
-                    return (
-                      answer && (
-                        <label key={choice} className="choice-label">
-                          <input
-                            type="radio"
-                            name={`question-${question.id}`}
-                            checked={selectedAnswers[question.order] === answer.id}
-                            onChange={() => handleAnswerChange(question.order, answer.id)}
-                          />
-                          {choice}
-                        </label>
-                      )
-                    );
-                  })}
+                  const answer = answersForQuestion.find((ans) => ans.content.startsWith(choice));
+                  return (
+                    answer && (
+                      <label key={choice} className="choice-label">
+                        <input
+                          type="radio"
+                          name={`question-${question.id}`}
+                          checked={selectedAnswers[question.order] === answer.id}
+                          onChange={() => handleAnswerChange(question.order, answer.id)}
+                        />
+                        {choice}
+                      </label>
+                    )
+                  );
+                })}
             </div>
 
             {/* Phần dịch script (Part 1, 2, 3, 4) với combobox */}
@@ -1955,9 +1955,8 @@ const PracticeTestPage = () => {
                       : 'Show translation'}
                   <FontAwesomeIcon
                     icon={faCaretDown}
-                    className={`translation-icon ${
-                      showQuestionTranslations[question.order] ? 'rotate-up' : 'rotate-down'
-                    }`}
+                    className={`translation-icon ${showQuestionTranslations[question.order] ? 'rotate-up' : 'rotate-down'
+                      }`}
                   />
                 </button>
                 {showQuestionTranslations[question.order] && (
@@ -1995,7 +1994,13 @@ const PracticeTestPage = () => {
                       </p>
                     )}
                     {role === 'admin' && (
-                      <div style={{ marginTop: '8px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                          marginTop: '8px',
+                        }}>
                         <button
                           className="translation-toggle-btn"
                           onClick={() =>
@@ -2043,12 +2048,12 @@ const PracticeTestPage = () => {
                           style={{
                             backgroundColor:
                               isEditingQuestionTranslation[question.order] &&
-                              !isTranslatingQuestion[question.order]
+                                !isTranslatingQuestion[question.order]
                                 ? '#2777ee'
                                 : '#ccc',
                             color:
                               isEditingQuestionTranslation[question.order] &&
-                              !isTranslatingQuestion[question.order]
+                                !isTranslatingQuestion[question.order]
                                 ? 'white'
                                 : 'black',
                           }}>
@@ -2128,9 +2133,8 @@ const PracticeTestPage = () => {
                   : 'Show translation'}
               <FontAwesomeIcon
                 icon={faCaretDown}
-                className={`translation-icon ${
-                  showImageTranslations[groupId] ? 'rotate-up' : 'rotate-down'
-                }`}
+                className={`translation-icon ${showImageTranslations[groupId] ? 'rotate-up' : 'rotate-down'
+                  }`}
               />
             </button>
             {showImageTranslations[groupId] && (
@@ -2163,8 +2167,8 @@ const PracticeTestPage = () => {
                     }}>
                     {extractTranslationContent(
                       imageTranslations[groupId]?.content ||
-                        translateScript ||
-                        'Không có bản dịch nào.'
+                      translateScript ||
+                      'Không có bản dịch nào.'
                     )}
                   </p>
                 )}
@@ -2269,11 +2273,10 @@ const PracticeTestPage = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${
-                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                } ${buttonClass}`}
+                  } ${buttonClass}`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>
