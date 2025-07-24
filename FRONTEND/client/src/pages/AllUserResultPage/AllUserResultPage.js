@@ -45,7 +45,7 @@ const AllUserResultPage = () => {
       if (!user?.id) return;
       setIsLoading(true);
       try {
-        const res = await fetchData(`/history/results?user_id=${user.id}`, true); // ❌ Changed from '/get_result' to '/history/results'
+        const res = await fetchData(`/history/results?user_id=${user.id}`, true); // ❌ Changed from '/history/get_result' to '/history/results'
         const results = Array.isArray(res) ? res : [];
         setAllResultsData(results);
         setFilteredResults(results);

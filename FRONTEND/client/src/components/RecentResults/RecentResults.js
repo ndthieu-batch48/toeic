@@ -21,10 +21,10 @@ const RecentResults = () => {
     }
     const fetchResults = async () => {
       try {
-        const res = await fetchData(`/get_result?user_id=${user.id}`, true);
+        const res = await fetchData(`/history/get_result?user_id=${user.id}`, true);
         setResultsData(res);
       } catch (error) {
-        logError('RecentResults component', `/get_result?user_id=${user.id}`, error);
+        logError('RecentResults component', `/history/get_result?user_id=${user.id}`, error);
       }
     };
     fetchResults();

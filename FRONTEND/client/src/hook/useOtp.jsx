@@ -4,10 +4,10 @@ import { useLocalStorage } from '../hook/useLocalStorage';
 import { logError } from '../log/logger';
 import { sendResetPasswordOtp, verifyResetPasswordRequest } from '../service/AuthService';
 
-const COUNTDOWN_DURATION = 120;
+const COUNTDOWN_DURATION = 100;
 
 export const useOtp = () => {
-  const [localData] = useLocalStorage('resetPasswordSession', {
+  const [localData, setLocalData] = useLocalStorage('resetPasswordSession', {
     email: '',
     resetToken: '',
   });
@@ -55,6 +55,11 @@ export const useOtp = () => {
 
       const response = await verifyResetPasswordRequest(otpValue, localData.email);
       setIsVerified(true);
+
+      setLocalData(() => ({
+        email: '',
+        resetToken: response.token,
+      }));
 
       return response;
     } catch (err) {

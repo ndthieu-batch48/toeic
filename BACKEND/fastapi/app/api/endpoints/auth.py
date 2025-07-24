@@ -1,10 +1,11 @@
 import asyncio
+import email
 from fastapi import APIRouter, HTTPException, status
 from datetime import timedelta
 
 from fastapi.responses import JSONResponse
 
-from ...database.test_pool import with_transaction
+from ...database.test_pool import get_cursor, with_transaction
 from ...database.connection import connect
 from ...schemas import auth as auth_schema
 from ...database import queries as auth_queries
@@ -15,7 +16,9 @@ from ...auth.smtp import (
     build_verify_email_mail, 
     send_email_service_async)
 from ...helpers.otp_helper import (
-    generate_expire_otp_helper, 
+    generate_expire_otp_helper,
+    generate_otp_action_token,
+    verify_otp_action_token, 
     verify_otp_helper)
 from ...helpers.jwt_helper import (
     hash_password, 
@@ -45,57 +48,53 @@ async def register(user: auth_schema.RegisterRequest):
 
 @router.post("/login", response_model = auth_schema.UserResponse)
 async def login(req: auth_schema.LoginRequest):
-    conn = connect()
-    cursor = conn.cursor(dictionary=True)
-    
-    credential = req.username if req.username else req.email
-    cursor.execute(auth_queries.SELECT_USER_BY_USERNAME_OR_EMAIL, (credential, credential))
-    user = cursor.fetchone()
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password!",
+    async with get_cursor() as (cursor, _):
+        credential = req.username if req.username else req.email
+        cursor.execute(auth_queries.SELECT_USER_BY_USERNAME_OR_EMAIL, (credential, credential))
+        user = cursor.fetchone()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid username or password!",
+            )
+        
+        if not verify_password(req.password, user.get("password")):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid username or password!",
+            )
+
+        access_token_expires = timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={
+                "sub": user.get("username"), 
+                "user_id": user.get("id"), 
+                "role": user.get("role")
+            },
+            expires_delta=access_token_expires,
         )
-    
-    if not verify_password(req.password, user["password"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password!",
+        
+        refresh_token = create_refresh_token(
+            data={
+                "sub": user.get("username"), 
+                "user_id": user.get("id"), 
+                "role": user.get("role"),
+                "token_type": "refresh",
+            }
         )
-    
-    access_token_expires = timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={
-            "sub": user["username"], 
-            "user_id": user["id"], 
-            "role": user["role"]
-        },
-        expires_delta=access_token_expires,
-    )
-    
-    refresh_token = create_refresh_token(
-        data={
-            "sub": user["username"],
-            "user_id": user["id"],
-            "role": user["role"],
-            "token_type": "refresh",
-        }
-    )
-    
-    response = auth_schema.UserResponse(
-        id=user["id"],
-        username=user["username"],
-        email=user["email"],
-        role=user["role"],
-        date_joined=user["date_joined"], 
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-    )
-    
-    cursor.close()
-    conn.close()
+        
+        response = auth_schema.UserResponse(
+            id=user.get("id"), 
+            email=user["email"],
+            username=user.get("username"), 
+            role=user.get("role"),
+            date_joined=user["date_joined"], 
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer",
+        )
+        
     return response
 
 @router.post("/refresh-token", response_model=auth_schema.TokenResponse)
@@ -134,36 +133,40 @@ async def refresh_token(req: auth_schema.TokenRequest):
 
 @router.put("/reset-password")
 async def reset_password(request: auth_schema.ResetPasswordRequest):
-    try:
-
-        if len(request.new_password) < 6:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be at least 6 characters long"
-            )
-
-        if not request.email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email is required"
-            )
-
-        conn = connect()
-        cursor = conn.cursor(dictionary=True)
-        
-        hashed_password = hash_password(request.new_password)
-        cursor.execute(auth_queries.UPDATE_USER_PASSWORD_BY_EMAIL, (hashed_password, request.email))
-        conn.commit()
+    @with_transaction
+    async def reset_password_transaction(cursor, conn, email, new_password):
+        hashed_password = hash_password(new_password)
+        cursor.execute(auth_queries.UPDATE_USER_PASSWORD_BY_EMAIL, (hashed_password, email))
         
         if cursor.rowcount == 0:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update password"
             )
+    
+    try:
+        if len(request.new_password) < 6:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password must be at least 6 characters long"
+            )
+
+        if not request.token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Token not found, session expired"
+            )
+
+        payload = verify_otp_action_token(request.token)
+        if not payload:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid token, session expired",
+            )
         
-        cursor.close()
-        conn.close()
-        
+        email = payload.get("email")    
+        await reset_password_transaction(email=email, new_password=request.new_password) # type: ignore
+            
         return {"message": "Password reset successfully"}
         
     except HTTPException:
@@ -173,12 +176,7 @@ async def reset_password(request: auth_schema.ResetPasswordRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while resetting password"
         )
-    finally:
-        try:
-            cursor.close()
-            conn.close()
-        except:
-            pass
+
 
 
 @router.post("/reset-password/otp")
@@ -219,7 +217,7 @@ async def send_reset_password_otp(req: auth_schema.EmailServiceRequest):
 async def verify_reset_password_otp(req: auth_schema.VerifyOtpServiceRequest):    
    
     @with_transaction
-    async def verify_otp(cursor, conn, email, otp):
+    async def verify_otp_transaction(cursor, conn, email, otp):
         await cursor.execute(auth_queries.SELECT_RESET_PASSWORD_OTP_BY_EMAIL, (email,))
         data = await cursor.fetchone()
         if not data:
@@ -233,11 +231,15 @@ async def verify_reset_password_otp(req: auth_schema.VerifyOtpServiceRequest):
         await cursor.execute(auth_queries.UPDATE_USED_RESET_PASSWORD_OTP, (email, otp))
 
     try:
-        await verify_otp(email=req.request_email, otp=req.otp) # type: ignore
+        await verify_otp_transaction(email=req.request_email, otp=req.otp) # type: ignore
+        reset_password_token =  generate_otp_action_token(req.request_email, 'reset_password')
         
         return JSONResponse(
             status_code=200,
-            content={"message": f"Reset password OTP is verified {req.request_email}"}
+            content={
+                "token": reset_password_token,
+                "message": f"Reset password OTP is verified {req.request_email}"
+                }
         )
         
     except HTTPException:
@@ -253,12 +255,12 @@ async def send_verify_email_otp(req: auth_schema.EmailServiceRequest):
     otp, otp_expire_time = generate_expire_otp_helper()
    
     @with_transaction
-    async def insert_otp(cursor, conn, email):
+    async def insert_otp_transaction(cursor, conn, email):
         await cursor.execute(auth_queries.DELETE_UNUSED_VERIFY_EMAIL_OTP, (email,))
         await cursor.execute(auth_queries.INSERT_VERIFY_EMAIL_OTP, (email, otp, otp_expire_time))
 
     try:
-        await insert_otp(email=req.request_email) # type: ignore
+        await insert_otp_transaction(email=req.request_email) # type: ignore
         
         expire_display = f"{app_config.OTP_EXPIRES_MINUTES}"
         msg = build_verify_email_mail(req.request_email, otp, expire_display)
@@ -281,7 +283,7 @@ async def send_verify_email_otp(req: auth_schema.EmailServiceRequest):
 async def verify_email_otp(req: auth_schema.VerifyOtpServiceRequest):    
    
     @with_transaction
-    async def verify_otp(cursor, conn, email, otp):
+    async def verify_otp_transaction(cursor, conn, email, otp):
         await cursor.execute(auth_queries.SELECT_VERIFY_EMAIL_OTP_BY_EMAIL, (email,))
         data = await cursor.fetchone()
         if not data:
@@ -295,7 +297,7 @@ async def verify_email_otp(req: auth_schema.VerifyOtpServiceRequest):
         await cursor.execute(auth_queries.UPDATE_USED_VERIFY_EMAIL_OTP, (email, otp))
 
     try:
-        await verify_otp(email=req.request_email, otp=req.otp) # type: ignore
+        await verify_otp_transaction(email=req.request_email, otp=req.otp) # type: ignore
         
         return JSONResponse(
             status_code=200,

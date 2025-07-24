@@ -12,7 +12,7 @@ const ResetPasswordPage = () => {
     email: '',
     resetToken: '',
   });
-  const email = localData.email;
+  const resetToken = localData.resetToken;
 
   const { showSuccess, showError } = useReduxAlert();
   const [newPassword, setNewPassword] = useState('');
@@ -21,7 +21,7 @@ const ResetPasswordPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
-  if (!email) {
+  if (!resetToken) {
     navigate('/send-reset-password');
     return null;
   }
@@ -42,7 +42,7 @@ const ResetPasswordPage = () => {
     setSubmitting(true);
 
     try {
-      const res = await resetPassword(email, newPassword);
+      const res = await resetPassword(resetToken, newPassword);
       clearLocalData();
       showSuccess(res.message || 'Password reset successfully');
       setTimeout(() => {

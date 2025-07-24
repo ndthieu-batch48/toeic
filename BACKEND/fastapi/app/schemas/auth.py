@@ -59,7 +59,7 @@ class RefreshTokenRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    email: str
+    token: str
     new_password: str
 
 

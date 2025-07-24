@@ -64,10 +64,10 @@ export const verifyResetPasswordRequest = async (otp, email) => {
   }
 };
 
-export const resetPassword = async (email, newPassword) => {
+export const resetPassword = async (resetToken, newPassword) => {
   try {
     const res = await axiosBase.put('/auth/reset-password', {
-      email: email,
+      token: resetToken,
       new_password: newPassword,
     });
 

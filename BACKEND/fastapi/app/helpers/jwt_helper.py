@@ -43,13 +43,3 @@ def verify_token(token: str):
         return payload
     except JWTError:
         return None
-
-def create_email_action_token(email: str, action: str) -> str:
-    expire = datetime.now() + timedelta(minutes=app_config.OTP_EXPIRES_MINUTES)
-    to_encode = {
-        "sub": email,
-        "email": email,
-        "action": action,
-        "exp": expire
-    }
-    return jwt.encode(to_encode, app_config.SECRET_KEY, algorithm=app_config.ALGORITHM)
