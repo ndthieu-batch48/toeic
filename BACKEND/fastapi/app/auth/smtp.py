@@ -2,7 +2,7 @@ import asyncio
 import aiosmtplib
 from email.message import EmailMessage
 from app.const.email_const import (
-    OTP_VERIFY_HTML, OTP_VERIFY_HTML, OTP_VERIFY_PLAIN, OTP_VERIFY_SUBJECT,
+    OTP_VERIFY_HTML, OTP_VERIFY_PLAIN, OTP_VERIFY_SUBJECT,
     PASSWORD_RESET_HTML, PASSWORD_RESET_PLAIN, PASSWORD_RESET_SUBJECT
 )
 from app.core.smtp_config import smtp_config
@@ -42,16 +42,16 @@ def build_password_reset_email(to_email: str, otp: str, expiry_minutes: str) -> 
 
     return msg
 
-
 def build_verify_email_mail(to_email: str, otp: str, expiry_minutes: str) -> EmailMessage:
+
     msg = EmailMessage()
     msg["Subject"] = OTP_VERIFY_SUBJECT
     msg["From"] = f"TMA TOEIC <{smtp_config.GMAIL_SENDER}>"
     msg["To"] = to_email
-    
+
     plain_body = OTP_VERIFY_PLAIN.format(otp=otp, expiry_minutes=expiry_minutes)
     html_body = OTP_VERIFY_HTML.format(otp=otp, expiry_minutes=expiry_minutes)
-    
+
     msg.set_content(plain_body)
     msg.add_alternative(html_body, subtype="html")
 

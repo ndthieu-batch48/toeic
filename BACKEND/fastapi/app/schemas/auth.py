@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from re import S
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
 from typing import Optional
 from datetime import datetime
 
@@ -64,7 +65,14 @@ class ResetPasswordRequest(BaseModel):
 
 
 class EmailServiceRequest(BaseModel):
-    request_email: str
+    credential: str
+
+    @field_validator('credential')
+    @classmethod
+    def validate_credential(cls, v):
+        if not v or len(v.strip()) == 0:
+            raise ValueError('Username or email is required')
+        return v.strip()
 
 
 class VerifyOtpServiceRequest(BaseModel):

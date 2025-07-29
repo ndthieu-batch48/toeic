@@ -1335,7 +1335,7 @@ const PracticeTestPage = () => {
       if (
         translation.question &&
         translation.question !==
-        `Lỗi khi dịch câu hỏi hoặc đáp án sang ${languageMap[languageId] || 'Vietnamese'}. Vui lòng thử lại.`
+          `Lỗi khi dịch câu hỏi hoặc đáp án sang ${languageMap[languageId] || 'Vietnamese'}. Vui lòng thử lại.`
       ) {
         await handleSaveQuestionTranslation(questionId, groupId, translation.question, languageId);
       }
@@ -1461,9 +1461,9 @@ const PracticeTestPage = () => {
             prev.map((group) =>
               group.id === Number(groupId)
                 ? {
-                  ...group,
-                  translate_script: JSON.stringify(translationRes.data),
-                }
+                    ...group,
+                    translate_script: JSON.stringify(translationRes.data),
+                  }
                 : group
             )
           );
@@ -1473,9 +1473,9 @@ const PracticeTestPage = () => {
             cachedData.groupMedia = cachedData.groupMedia.map((group) =>
               group.id === Number(groupId)
                 ? {
-                  ...group,
-                  translate_script: JSON.stringify(translationRes.data),
-                }
+                    ...group,
+                    translate_script: JSON.stringify(translationRes.data),
+                  }
                 : group
             );
             await set(cacheKey, cachedData);
@@ -1640,32 +1640,32 @@ const PracticeTestPage = () => {
             <div className="choices">
               {isQuestionContentValid
                 ? answersForQuestion.map((answer) => (
-                  <label key={answer.id} className="choice-label" style={{ marginBottom: '4px' }}>
-                    <input
-                      type="radio"
-                      name={`question-${question.id}`}
-                      checked={selectedAnswers[question.order] === answer.id}
-                      onChange={() => handleAnswerChange(question.order, answer.id)}
-                    />
-                    {answer.content}
-                  </label>
-                ))
+                    <label key={answer.id} className="choice-label" style={{ marginBottom: '4px' }}>
+                      <input
+                        type="radio"
+                        name={`question-${question.id}`}
+                        checked={selectedAnswers[question.order] === answer.id}
+                        onChange={() => handleAnswerChange(question.order, answer.id)}
+                      />
+                      {answer.content}
+                    </label>
+                  ))
                 : ['A', 'B', 'C', 'D'].map((choice) => {
-                  const answer = answersForQuestion.find((ans) => ans.content.startsWith(choice));
-                  return (
-                    answer && (
-                      <label key={choice} className="choice-label">
-                        <input
-                          type="radio"
-                          name={`question-${question.id}`}
-                          checked={selectedAnswers[question.order] === answer.id}
-                          onChange={() => handleAnswerChange(question.order, answer.id)}
-                        />
-                        {choice}
-                      </label>
-                    )
-                  );
-                })}
+                    const answer = answersForQuestion.find((ans) => ans.content.startsWith(choice));
+                    return (
+                      answer && (
+                        <label key={choice} className="choice-label">
+                          <input
+                            type="radio"
+                            name={`question-${question.id}`}
+                            checked={selectedAnswers[question.order] === answer.id}
+                            onChange={() => handleAnswerChange(question.order, answer.id)}
+                          />
+                          {choice}
+                        </label>
+                      )
+                    );
+                  })}
             </div>
 
             {/* Phần dịch script (Part 1, 2, 3, 4) với combobox */}
@@ -1955,8 +1955,9 @@ const PracticeTestPage = () => {
                       : 'Show translation'}
                   <FontAwesomeIcon
                     icon={faCaretDown}
-                    className={`translation-icon ${showQuestionTranslations[question.order] ? 'rotate-up' : 'rotate-down'
-                      }`}
+                    className={`translation-icon ${
+                      showQuestionTranslations[question.order] ? 'rotate-up' : 'rotate-down'
+                    }`}
                   />
                 </button>
                 {showQuestionTranslations[question.order] && (
@@ -2048,12 +2049,12 @@ const PracticeTestPage = () => {
                           style={{
                             backgroundColor:
                               isEditingQuestionTranslation[question.order] &&
-                                !isTranslatingQuestion[question.order]
+                              !isTranslatingQuestion[question.order]
                                 ? '#2777ee'
                                 : '#ccc',
                             color:
                               isEditingQuestionTranslation[question.order] &&
-                                !isTranslatingQuestion[question.order]
+                              !isTranslatingQuestion[question.order]
                                 ? 'white'
                                 : 'black',
                           }}>
@@ -2133,8 +2134,9 @@ const PracticeTestPage = () => {
                   : 'Show translation'}
               <FontAwesomeIcon
                 icon={faCaretDown}
-                className={`translation-icon ${showImageTranslations[groupId] ? 'rotate-up' : 'rotate-down'
-                  }`}
+                className={`translation-icon ${
+                  showImageTranslations[groupId] ? 'rotate-up' : 'rotate-down'
+                }`}
               />
             </button>
             {showImageTranslations[groupId] && (
@@ -2167,8 +2169,8 @@ const PracticeTestPage = () => {
                     }}>
                     {extractTranslationContent(
                       imageTranslations[groupId]?.content ||
-                      translateScript ||
-                      'Không có bản dịch nào.'
+                        translateScript ||
+                        'Không có bản dịch nào.'
                     )}
                   </p>
                 )}
@@ -2273,10 +2275,11 @@ const PracticeTestPage = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${
+                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                  } ${buttonClass}`}
+                } ${buttonClass}`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>

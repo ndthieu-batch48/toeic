@@ -44,10 +44,10 @@ export const logoutUser = async () => {
   }
 };
 
-export const sendResetPasswordOtp = async (email) => {
+export const sendResetPasswordOtp = async (credential) => {
   const url = '/auth/reset-password/otp';
   try {
-    const res = await axiosBase.post(url, { request_email: email });
+    const res = await axiosBase.post(url, { credential });
     return res.data;
   } catch (error) {
     throw formatAxiosError(error);
@@ -57,7 +57,7 @@ export const sendResetPasswordOtp = async (email) => {
 export const verifyResetPasswordRequest = async (otp, email) => {
   const url = '/auth/reset-password/verify';
   try {
-    const res = await axiosBase.post(url, { otp: otp, request_email: email });
+    const res = await axiosBase.post(url, JSON.stringify({ otp: otp, request_email: email }));
     return res.data;
   } catch (error) {
     throw formatAxiosError(error);

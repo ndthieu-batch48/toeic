@@ -1209,12 +1209,12 @@ const ViewResultUserDo = () => {
             prev.map((group) =>
               group.id === groupId
                 ? {
-                  ...group,
-                  explain_question: {
-                    ...group.explain_question,
-                    [questionActualId]: res.data.explain_question,
-                  },
-                }
+                    ...group,
+                    explain_question: {
+                      ...group.explain_question,
+                      [questionActualId]: res.data.explain_question,
+                    },
+                  }
                 : group
             )
           );
@@ -1409,9 +1409,9 @@ const ViewResultUserDo = () => {
           prev.map((group) =>
             group.id === mediaId
               ? {
-                ...group,
-                translate_script: res.data.translate_content,
-              }
+                  ...group,
+                  translate_script: res.data.translate_content,
+                }
               : group
           )
         );
@@ -1449,7 +1449,10 @@ const ViewResultUserDo = () => {
     if (!isShowing && mediaId && !isNaN(Number(mediaId))) {
       console.log('Checking database for image translation...');
       try {
-        const res = await fetchData(`/translation/translate?media_id=${mediaId}&question_id=${mediaId}`, true);
+        const res = await fetchData(
+          `/translation/translate?media_id=${mediaId}&question_id=${mediaId}`,
+          true
+        );
         if (res.success && res.data) {
           const cleanTranslation = extractTranslationContent(res.data.translate_content);
           setImageTranslations((prev) => ({
@@ -2092,11 +2095,13 @@ const ViewResultUserDo = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${isCorrect ? 'correct' : ''
-                  } ${isIncorrect ? 'incorrect' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${
+                  isCorrect ? 'correct' : ''
+                } ${isIncorrect ? 'incorrect' : ''} ${
+                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                  }`}
+                }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>

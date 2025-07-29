@@ -135,6 +135,15 @@ async def refresh_token(req: auth_schema.TokenRequest):
 async def reset_password(request: auth_schema.ResetPasswordRequest):
     @with_transaction
     async def reset_password_transaction(cursor, conn, email, new_password):
+        await cursor.execute(auth_queries.SELECT_USER_BY_EMAIL, (email,))
+        user = await cursor.fetchone()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        
         hashed_password = hash_password(new_password)
         cursor.execute(auth_queries.UPDATE_USER_PASSWORD_BY_EMAIL, (hashed_password, email))
         
@@ -184,25 +193,28 @@ async def send_reset_password_otp(req: auth_schema.EmailServiceRequest):
     otp, otp_expire_time = generate_expire_otp_helper()
    
     @with_transaction
-    async def insert_otp_transaction(cursor, conn, email):
-        await cursor.execute(auth_queries.SELECT_USER_BY_EMAIL, (email,))
+    async def insert_otp_transaction(cursor, conn, credential):
+        await cursor.execute(auth_queries.SELECT_USER_BY_EMAIL_OR_USERNAME, (credential, credential))
         user = await cursor.fetchone()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
-        await cursor.execute(auth_queries.DELETE_UNUSED_RESET_PASSWORD_OTP, (email,))
-        await cursor.execute(auth_queries.INSERT_RESET_PASSWORD_OTP, (email, otp, otp_expire_time))
 
+        user_email = user.get("email")
+        await cursor.execute(auth_queries.DELETE_UNUSED_RESET_PASSWORD_OTP, (user_email,))
+        await cursor.execute(auth_queries.INSERT_RESET_PASSWORD_OTP, (user_email, otp, otp_expire_time))
+    
+        return user_email
     try:
-        await insert_otp_transaction(email=req.request_email) # type: ignore
+        credential = req.credential.strip()
+        user_email = await insert_otp_transaction(credential) # type: ignore
         
         expire_display = f"{app_config.OTP_EXPIRES_MINUTES}"
-        msg = build_password_reset_email(req.request_email, otp, expire_display)
+        msg = build_password_reset_email(user_email, otp, expire_display)
         asyncio.create_task(send_email_service_async(msg))
         
         return JSONResponse(
             status_code=200,
-            content={"message": f"A password reset OTP will be sent to {req.request_email}"}
+            content={"message": f"A password reset OTP will be sent to your email", "email": user_email}
         )
         
     except HTTPException:
@@ -222,9 +234,10 @@ async def verify_reset_password_otp(req: auth_schema.VerifyOtpServiceRequest):
         data = await cursor.fetchone()
         if not data:
             raise HTTPException(status_code=400, detail="OTP not found")
-            
-        otp, expires_at = data.get("otp"), data.get("expires_at")
-        is_valid = verify_otp_helper(req.otp, otp, expires_at)
+           
+        stored_otp = data.get("otp") 
+        expires_at = data.get("expires_at")
+        is_valid = verify_otp_helper(user_otp, stored_otp, expires_at)
         if not is_valid:
             raise HTTPException(status_code=400, detail="Invalid or expired OTP")
         
@@ -260,15 +273,16 @@ async def send_verify_email_otp(req: auth_schema.EmailServiceRequest):
         await cursor.execute(auth_queries.INSERT_VERIFY_EMAIL_OTP, (email, otp, otp_expire_time))
 
     try:
-        await insert_otp_transaction(email=req.request_email) # type: ignore
-        
+        credential = req.credential.strip() # This credential is forced to be an email 
+        await insert_otp_transaction(email=credential) # type: ignore
+
         expire_display = f"{app_config.OTP_EXPIRES_MINUTES}"
-        msg = build_verify_email_mail(req.request_email, otp, expire_display)
+        msg = build_verify_email_mail(credential, otp, expire_display)
         asyncio.create_task(send_email_service_async(msg))
         
         return JSONResponse(
             status_code=200,
-            content={"message": f"A verification email OTP will be sent to {req.request_email}"}
+            content={"message": f"A verification email OTP will be sent to {credential}"}
         )
         
     except HTTPException:

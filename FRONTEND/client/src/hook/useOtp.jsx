@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react';
 
-import { useLocalStorage } from '../hook/useLocalStorage';
 import { logError } from '../log/logger';
 import { sendResetPasswordOtp, verifyResetPasswordRequest } from '../service/AuthService';
+import { createResetPasswordSession } from '../utils/localStorageUtil';
 
 const COUNTDOWN_DURATION = 100;
 
 export const useOtp = () => {
-  const [localData, setLocalData] = useLocalStorage('resetPasswordSession', {
-    email: '',
-    resetToken: '',
-  });
-
   const [isLoading, setIsLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -29,15 +24,17 @@ export const useOtp = () => {
 
   const canResend = timeLeft === 0;
 
-  const sendOtp = async (email) => {
+  const sendOtp = async (credential) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await sendResetPasswordOtp(email);
+      const response = await sendResetPasswordOtp(credential);
 
       setIsVerified(false);
       setTimeLeft(COUNTDOWN_DURATION); // Reset countdown when sending new OTP
+
+      // createResetPasswordSession(response.email, '');
 
       return response;
     } catch (error) {
@@ -53,13 +50,8 @@ export const useOtp = () => {
       setIsVerifying(true);
       setError(null);
 
-      const response = await verifyResetPasswordRequest(otpValue, localData.email);
+      const response = await verifyResetPasswordRequest(otpValue, session.email);
       setIsVerified(true);
-
-      setLocalData(() => ({
-        email: '',
-        resetToken: response.token,
-      }));
 
       return response;
     } catch (err) {
@@ -72,9 +64,10 @@ export const useOtp = () => {
 
   const handleOtpSubmit = async (otpString) => {
     setError(null);
+    const sanitizeOtp = (otp) => otp.replace(/\D/g, ''); // Thêm dòng này cho chắc kèo
 
     try {
-      await verifyOtp(otpString.trim());
+      await verifyOtp(sanitizeOtp(otpString.trim()));
     } catch (err) {
       logError('OTP verification failed:', err);
     }

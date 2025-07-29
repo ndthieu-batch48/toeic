@@ -69,7 +69,9 @@ export default [
     rules: {
       // React rules
       ...reactPlugin.configs.recommended.rules,
-      ...hooksPlugin.configs.recommended.rules,
+      // React Hooks rules - explicitly define them for compatibility
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
 
       // Turn off conflicting rules
       'no-unused-vars': 'off', // conflicts with unused-imports

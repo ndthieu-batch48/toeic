@@ -2,22 +2,17 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { useLocalStorage } from '../../hook/useLocalStorage';
 import { useOtp } from '../../hook/useOtp';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 
 const SendResetPasswordEmailPage = () => {
-  const [, setLocalData] = useLocalStorage('resetPasswordSession', {
-    email: '',
-    resetToken: '',
-  });
   const navigate = useNavigate();
 
   const { showError, showSuccess } = useReduxAlert();
   const { sendOtp, isLoading, error: otpError } = useOtp();
 
   const [error, setError] = useState('');
-  const [localEmail, setLocalEmail] = useState('');
+  const [credential, setCredential] = useState('');
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,11 +20,13 @@ const SendResetPasswordEmailPage = () => {
   };
 
   const validateForm = () => {
-    if (!localEmail) {
-      setError('Please enter your email');
+    if (!credential) {
+      setError('Email or username is required');
       return false;
     }
-    if (!validateEmail(localEmail)) {
+
+    const isEmail = credential.includes('@');
+    if (isEmail && !validateEmail(credential)) {
       setError('Please enter a valid email address');
       return false;
     }
@@ -39,7 +36,7 @@ const SendResetPasswordEmailPage = () => {
 
   const handleEmailChange = (e) => {
     const value = e.target.value;
-    setLocalEmail(value);
+    setCredential(value);
 
     if (error) setError('');
   };
@@ -50,12 +47,7 @@ const SendResetPasswordEmailPage = () => {
 
     if (!validateForm()) return;
 
-    setLocalData((prev) => ({
-      ...prev,
-      email: localEmail,
-    }));
-
-    const response = await sendOtp(localEmail);
+    const response = await sendOtp(credential);
     if (otpError) {
       setError(otpError);
       showError(otpError);
@@ -85,10 +77,10 @@ const SendResetPasswordEmailPage = () => {
 
                 <div className="mb-3">
                   <input
-                    type="email"
+                    type="text"
                     className="form-control form-control-lg"
-                    placeholder="Enter your email address"
-                    value={localEmail}
+                    placeholder="Enter your Email or User name"
+                    value={credential}
                     onChange={handleEmailChange}
                     disabled={isLoading}
                     required

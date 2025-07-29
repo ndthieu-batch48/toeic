@@ -733,8 +733,9 @@ const ViewDetailResult = () => {
                 {showScripts[question.order] ? 'Hide script' : 'Show script'}
                 <FontAwesomeIcon
                   icon={faCaretDown}
-                  className={`script-icon ${showScripts[question.order] ? 'rotate-up' : 'rotate-down'
-                    }`}
+                  className={`script-icon ${
+                    showScripts[question.order] ? 'rotate-up' : 'rotate-down'
+                  }`}
                 />
               </button>
               {showScripts[question.order] && (
@@ -759,8 +760,9 @@ const ViewDetailResult = () => {
                     : 'Show translation'}
                 <FontAwesomeIcon
                   icon={faCaretDown}
-                  className={`script-icon ${showTranslations[question.order] ? 'rotate-up' : 'rotate-down'
-                    }`}
+                  className={`script-icon ${
+                    showTranslations[question.order] ? 'rotate-up' : 'rotate-down'
+                  }`}
                 />
               </button>
               {showTranslations[question.order] && (
@@ -846,8 +848,9 @@ const ViewDetailResult = () => {
                     : 'Explain by AI'}
                 <FontAwesomeIcon
                   icon={faCaretDown}
-                  className={`script-icon ${showExplanations[question.order] ? 'rotate-up' : 'rotate-down'
-                    }`}
+                  className={`script-icon ${
+                    showExplanations[question.order] ? 'rotate-up' : 'rotate-down'
+                  }`}
                 />
               </button>
               {showExplanations[question.order] && (
@@ -937,10 +940,11 @@ const ViewDetailResult = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
-                  ? 'active'
-                  : ''
-                  }`}
+                className={`question-number ${isAnswered ? 'answered' : ''} ${
+                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                    ? 'active'
+                    : ''
+                }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>

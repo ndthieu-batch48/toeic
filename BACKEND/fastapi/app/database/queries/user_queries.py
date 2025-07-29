@@ -30,7 +30,7 @@ INSERT_RESET_PASSWORD_OTP = """
 """
 
 SELECT_RESET_PASSWORD_OTP_BY_EMAIL = """
-    SELECT otp, expires_at FROM toeicapp_otp 
+    SELECT * FROM toeicapp_otp 
     WHERE email = %s AND purpose = 'reset_password' AND is_used = 0
 """
 
