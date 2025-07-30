@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AUTH_SUCCESS, FORM_ERRORS } from '../../constants/messages';
 import { useAuth } from '../../context/AuthContext';
 import { useReduxAlert } from '../../hook/useReduxAlert';
+import { clearOtpSession } from '../../utils/localStorageUtil';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -71,6 +72,11 @@ const LoginPage = () => {
     setIsShowPassword((prev) => !prev);
   };
 
+  const handleForgotPassword = () => {
+    clearOtpSession();
+    navigate('/send-reset-password');
+  };
+
   return (
     <div className="login-container">
       <div className="login-form">
@@ -117,7 +123,18 @@ const LoginPage = () => {
           </div>
 
           <p className="login-footer">
-            <Link to="/send-reset-password">Forgot password?</Link>
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="btn btn-link p-0"
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: '500',
+                textDecoration: 'underline',
+                color: '#4a2c8a',
+              }}>
+              Forgot password?
+            </button>
           </p>
 
           <button type="submit" disabled={isLoading} className="login-button">

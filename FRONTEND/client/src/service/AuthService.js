@@ -44,20 +44,20 @@ export const logoutUser = async () => {
   }
 };
 
-export const sendResetPasswordOtp = async (credential) => {
-  const url = '/auth/reset-password/otp';
+export const sendOtpRequest = async ({ credential_value, credential_type, purpose }) => {
+  const url = '/auth/otp/request';
   try {
-    const res = await axiosBase.post(url, { credential });
+    const res = await axiosBase.post(url, { credential_value, credential_type, purpose });
     return res.data;
   } catch (error) {
     throw formatAxiosError(error);
   }
 };
 
-export const verifyResetPasswordRequest = async (otp, email) => {
-  const url = '/auth/reset-password/verify';
+export const verifyOtpRequest = async (otp, purpose) => {
+  const url = '/auth/otp/verify';
   try {
-    const res = await axiosBase.post(url, JSON.stringify({ otp: otp, request_email: email }));
+    const res = await axiosBase.post(url, { otp, purpose });
     return res.data;
   } catch (error) {
     throw formatAxiosError(error);

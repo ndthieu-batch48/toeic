@@ -1,19 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useLocalStorage } from '../../hook/useLocalStorage';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import { resetPassword } from '../../service/AuthService';
+import { getOtpSession, clearOtpSession } from '../../utils/localStorageUtil';
 
 const ResetPasswordPage = () => {
   const navigate = useNavigate();
-
-  const [localData, , clearLocalData] = useLocalStorage('resetPasswordSession', {
-    email: '',
-    resetToken: '',
-  });
-  const resetToken = localData.resetToken;
-
   const { showSuccess, showError } = useReduxAlert();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,10 +14,13 @@ const ResetPasswordPage = () => {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
 
-  if (!resetToken) {
-    navigate('/send-reset-password');
-    return null;
-  }
+  const otpSession = useMemo(() => getOtpSession(), []);
+
+  useEffect(() => {
+    if (!otpSession.token) {
+      navigate('/send-reset-password', { replace: true });
+    }
+  }, [otpSession, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,12 +38,12 @@ const ResetPasswordPage = () => {
     setSubmitting(true);
 
     try {
-      const res = await resetPassword(resetToken, newPassword);
-      clearLocalData();
+      const res = await resetPassword(otpSession.token, newPassword);
       showSuccess(res.message || 'Password reset successfully');
+      clearOtpSession();
       setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        navigate('/login', { replace: true });
+      }, 1000);
     } catch (error) {
       showError(error.message || 'Failed to reset password');
     } finally {

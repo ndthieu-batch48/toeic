@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import { logError } from '../log/logger';
-import { sendResetPasswordOtp, verifyResetPasswordRequest } from '../service/AuthService';
-import { createResetPasswordSession } from '../utils/localStorageUtil';
+import { sendOtpRequest, verifyOtpRequest } from '../service/AuthService';
+import { getOtpSession, updateOtpSession } from '../utils/localStorageUtil';
 
-const COUNTDOWN_DURATION = 100;
+const COUNTDOWN_DURATION = 60;
 
 export const useOtp = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,17 +24,15 @@ export const useOtp = () => {
 
   const canResend = timeLeft === 0;
 
-  const sendOtp = async (credential) => {
+  const sendOtp = async ({ credential_value, credential_type, purpose }) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await sendResetPasswordOtp(credential);
+      const response = await sendOtpRequest({ credential_value, credential_type, purpose });
 
       setIsVerified(false);
       setTimeLeft(COUNTDOWN_DURATION); // Reset countdown when sending new OTP
-
-      // createResetPasswordSession(response.email, '');
 
       return response;
     } catch (error) {
@@ -49,8 +47,9 @@ export const useOtp = () => {
     try {
       setIsVerifying(true);
       setError(null);
-
-      const response = await verifyResetPasswordRequest(otpValue, session.email);
+      const otpSession = getOtpSession();
+      const response = await verifyOtpRequest(otpValue, otpSession.purpose);
+      updateOtpSession({ token: response.token });
       setIsVerified(true);
 
       return response;

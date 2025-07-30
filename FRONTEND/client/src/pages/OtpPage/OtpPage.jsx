@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useLocalStorage } from '../../hook/useLocalStorage';
 import { useOtp } from '../../hook/useOtp';
 import { useReduxAlert } from '../../hook/useReduxAlert';
+import { getOtpSession } from '../../utils/localStorageUtil';
 
 const OtpPage = () => {
   const navigate = useNavigate();
   const { showSuccess, showError } = useReduxAlert();
-
-  const [localData] = useLocalStorage('resetPasswordSession', {
-    email: '',
-    resetToken: '',
-  });
 
   const {
     isLoading,
@@ -31,10 +26,9 @@ const OtpPage = () => {
 
   useEffect(() => {
     if (isVerified) {
-      showSuccess('OTP verified successfully!');
       setTimeout(() => navigate('/reset-password'), 1000);
     }
-  }, [isVerified, navigate, showSuccess]);
+  }, [isVerified, navigate]);
 
   // Gộp logic update input + trạng thái complete
   const updateOtpInput = (newInput) => {
@@ -65,7 +59,12 @@ const OtpPage = () => {
   const handleResendOtp = async (e) => {
     e.preventDefault();
     try {
-      const res = await sendOtp();
+      const otpSession = getOtpSession();
+      const res = await sendOtp({
+        credential_value: otpSession.credential_value,
+        credential_type: otpSession.credential_type,
+        purpose: otpSession.purpose,
+      });
       showSuccess(res.message);
       resetOtp();
       updateOtpInput(Array(6).fill(''));
@@ -109,11 +108,6 @@ const OtpPage = () => {
                 className="container d-flex flex-column align-items-center justify-content-center"
                 style={{ height: '200px' }}>
                 <h2 className="mb-3">Enter OTP</h2>
-                <p className="text-center text-muted mb-4">
-                  We&apos;ve sent a verification code to
-                  <br />
-                  <strong>{localData.email}</strong>
-                </p>
 
                 <form>
                   <div className="d-flex justify-content-center gap-2 mb-3">

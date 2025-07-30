@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   REFRESH_TOKEN: 'refresh_token',
   USER_DATA: 'user',
   REDUX_USER: 'redux_user',
+  OTP_SERVICE_SESSION: 'otp_session',
 };
 
 /**
@@ -194,4 +195,43 @@ export const removeTestData = () => {
       sessionStorage.removeItem(key);
     }
   });
+};
+
+export const createOtpSession = ({
+  credential_value = '',
+  credential_type = '',
+  purpose = '',
+  token = '',
+}) => {
+  setStorageJSON(STORAGE_KEYS.OTP_SERVICE_SESSION, {
+    credential_value,
+    credential_type,
+    purpose,
+    token,
+  });
+};
+
+export const getOtpSession = () => {
+  const otpSession = getStorageJSON(STORAGE_KEYS.OTP_SERVICE_SESSION, {
+    credential_value: '',
+    credential_type: '',
+    purpose: '',
+    token: '',
+  });
+  return otpSession;
+};
+
+export const updateOtpSession = (updates = {}) => {
+  const currentSession = getOtpSession();
+
+  const updatedSession = {
+    ...currentSession,
+    ...updates,
+  };
+
+  setStorageJSON(STORAGE_KEYS.OTP_SERVICE_SESSION, updatedSession);
+};
+
+export const clearOtpSession = () => {
+  sessionStorage.removeItem(STORAGE_KEYS.OTP_SERVICE_SESSION);
 };

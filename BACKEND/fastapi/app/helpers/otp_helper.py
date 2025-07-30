@@ -1,6 +1,5 @@
-from turtle import st
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
+from fastapi import HTTPException, status
+from jose import jwt, JWTError, ExpiredSignatureError
 from datetime import timedelta, datetime
 import random
 import string
@@ -14,29 +13,35 @@ def generate_expire_otp_helper(length=6):
     otp_expire_time = datetime.now() + timedelta(minutes=app_config.OTP_EXPIRES_MINUTES)
     return (otp, otp_expire_time)
 
-def verify_otp_helper(otp: str, stored_otp: str, expires_at: datetime) -> bool:
-    """Verifies the OTP against the stored OTP and checks if it has expired."""
-    if otp != stored_otp:
-        return False
-    if datetime.now() > expires_at:
-        return False
-    return True
 
-def generate_otp_action_token(email: str, action: str) -> str:
+def generate_otp_purpose_token(user_id: str, purpose: str) -> str:
     expire = datetime.now() + timedelta(minutes=app_config.OTP_EXPIRES_MINUTES)
     to_encode = {
-        "sub": email,
-        "email": email,
-        "action": action,
-        "exp": expire
+        "sub": str(user_id),
+        "purpose": purpose,
+        "exp": expire.timestamp()
     }
     return jwt.encode(to_encode, app_config.SECRET_KEY, algorithm=app_config.ALGORITHM)
 
+
 def verify_otp_action_token(token: str):
     try:
-        payload = jwt.decode(token, app_config.SECRET_KEY, algorithms=[app_config.ALGORITHM])
-        if payload["exp"] < datetime.now().timestamp():
-            return None
+        payload=jwt.decode(token, app_config.SECRET_KEY, algorithms=[app_config.ALGORITHM])
+    
+        if not token:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Token not found, session expired"
+                )
         return payload
+    except ExpiredSignatureError:
+        raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid token, session expired",
+            )
     except JWTError:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid token"
+        )
+

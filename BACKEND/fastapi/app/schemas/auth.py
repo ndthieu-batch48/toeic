@@ -1,5 +1,5 @@
 from re import S
-from pydantic import BaseModel, EmailStr, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -14,15 +14,14 @@ class RegisterRequest(UserRequestBase):
 
 
 class LoginRequest(BaseModel):
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
+    credential: str
     password: str
 
-    @field_validator('email')
+    @field_validator('credential')
     def validate_username_or_email(cls, v, values):
-        if not v and not values.get('username'):
-            raise ValueError('Either username or email must be provided')
-        return v
+        if not v and not values.get('credential'):
+            raise ValueError('User name or email must be provided')
+        return v.strip()
 
 
 class UserResponse(BaseModel):
@@ -64,17 +63,21 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
-class EmailServiceRequest(BaseModel):
-    credential: str
+class OtpServiceRequest(BaseModel):
+    credential_value: str
+    credential_type: str
+    purpose: str
 
-    @field_validator('credential')
+    @field_validator("credential_value")
     @classmethod
-    def validate_credential(cls, v):
-        if not v or len(v.strip()) == 0:
-            raise ValueError('Username or email is required')
+    def validate_credential(cls, v: str) -> str:
+        if not isinstance(v, str):
+            raise ValueError("Credential must be a string")
+        if not v.strip():
+            raise ValueError("Username or email is required")
         return v.strip()
 
 
 class VerifyOtpServiceRequest(BaseModel):
     otp: str
-    request_email: str
+    purpose: str
