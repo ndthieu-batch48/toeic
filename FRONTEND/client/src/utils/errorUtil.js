@@ -43,3 +43,38 @@ export class AppError extends Error {
     this.raw = error;
   }
 }
+
+export function extractAxiosError(error) {
+  if (error.response) {
+    const { data, status } = error.response;
+
+    // Validation error (422) - format
+    if (status === 422 && Array.isArray(data.detail)) {
+      return data.detail
+        .map((err) => {
+          const path = Array.isArray(err.loc) ? err.loc.slice(1).join('.') : err.loc;
+          const field = path.charAt(0).toUpperCase() + path.slice(1);
+          const msg = err.msg;
+          const input = err.input !== undefined ? ` (Input: ${JSON.stringify(err.input)})` : '';
+          const type = err.type ? ` [${err.type}]` : '';
+
+          return `${msg}: ${field}${input}${type}`;
+        })
+        .join('\n');
+    }
+
+    // If error is a object (tự custom lỗi dạng JSON)
+    if (typeof data.detail === 'object') {
+      return data.detail.msg || JSON.stringify(data.detail);
+    }
+
+    // 📄 Nếu detail là string
+    return data.detail || `Error ${status}`;
+  } else if (error.request) {
+    // Network error
+    return 'Network error or no response from server.';
+  } else {
+    // Unknown error
+    return error.message || 'Unknown error';
+  }
+}

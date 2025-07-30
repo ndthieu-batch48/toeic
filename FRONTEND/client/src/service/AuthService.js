@@ -1,5 +1,5 @@
 import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
-import { AppError, formatAxiosError } from '../utils/errorUtil';
+import { AppError, extractAxiosError, formatAxiosError } from '../utils/errorUtil';
 import { isTokenExpired, validateToken } from '../utils/jwtUtil';
 import { getAccessToken, getRefreshToken, saveTokens } from '../utils/localStorageUtil';
 import { axiosBase } from './axiosInstance/axiosInstance';
@@ -10,7 +10,7 @@ export const loginUser = async (data) => {
     const res = await axiosBase.post(url, data);
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 

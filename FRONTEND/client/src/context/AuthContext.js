@@ -46,8 +46,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Main authentication functions
-  const login = async ({ username, password }) => {
-    const userResponse = await AuthService.loginUser({ username, password });
+  const login = async ({ credentail, password }) => {
+    const userResponse = await AuthService.loginUser({ credentail, password });
     updateReduxUser(userResponse);
     LocalStorage.saveUserSession(userResponse);
   };
