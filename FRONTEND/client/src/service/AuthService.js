@@ -1,5 +1,5 @@
 import { AUTH_ERRORS, HTTP_STATUS } from '../constants/messages';
-import { AppError, extractAxiosError, formatAxiosError } from '../utils/errorUtil';
+import { AppError, extractAxiosError } from '../utils/errorUtil';
 import { isTokenExpired, validateToken } from '../utils/jwtUtil';
 import { getAccessToken, getRefreshToken, saveTokens } from '../utils/localStorageUtil';
 import { axiosBase } from './axiosInstance/axiosInstance';
@@ -20,7 +20,7 @@ export const registerUser = async (data) => {
     const res = await axiosBase.post(url, data);
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -30,7 +30,7 @@ export const refreshTokenService = async (refreshToken) => {
     const res = await axiosBase.post(url, { token: refreshToken });
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -40,7 +40,7 @@ export const logoutUser = async () => {
     const res = await axiosBase.post(url);
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -50,7 +50,7 @@ export const sendOtpRequest = async ({ credential_value, credential_type, purpos
     const res = await axiosBase.post(url, { credential_value, credential_type, purpose });
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -60,7 +60,7 @@ export const verifyOtpRequest = async (otp, purpose) => {
     const res = await axiosBase.post(url, { otp, purpose });
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -73,7 +73,7 @@ export const resetPassword = async (resetToken, newPassword) => {
 
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 

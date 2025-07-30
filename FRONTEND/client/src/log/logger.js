@@ -1,6 +1,6 @@
 import log from 'loglevel';
 
-import { AppError, formatAxiosError } from '../utils/errorUtil';
+import { AppError } from '../utils/errorUtil';
 
 export function setLogLevel(level = 'TRACE') {
   log.setLevel(level);
@@ -68,7 +68,7 @@ export function logWarn(context = 'WARN', message = 'No message', data = null) {
  *
  * @param {string} context - A required context string. Helps identify where the error occurred.
  * @param {string} [message='No message'] - A custom error message for readability in logs.
- * @param {any} error - The actual error object (can be AppError, AxiosError, or standard Error).
+ * @param {any} error - The actual error object (can be AppError, or string error message).
  * @returns {void}
  */
 export function logError(context = 'ERROR', message = 'No message', error = null) {
@@ -86,22 +86,9 @@ export function logError(context = 'ERROR', message = 'No message', error = null
       stack: error.stack,
       raw: error.raw,
     });
-  } else if (error.code || error.response || error.request) {
-    const formattedError = formatAxiosError(error);
-    _logFactory(APP_LOG_LEVELS.ERROR, context, message, {
-      name: 'AxiosError',
-      message: formattedError.message,
-      status: formattedError.status,
-      code: formattedError.code,
-      stack: error.stack,
-      raw: error,
-    });
   } else {
-    _logFactory(APP_LOG_LEVELS.ERROR, context, message, {
-      name: error.name || 'Error',
-      message: error.message || String(error),
-      stack: error.stack || 'No stack trace',
-    });
+    // All other errors, including Axios and FastAPI errors, are already formatted
+    _logFactory(APP_LOG_LEVELS.ERROR, context, message, error);
   }
 }
 

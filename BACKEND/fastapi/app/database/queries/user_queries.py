@@ -1,12 +1,5 @@
 """User and authentication related queries"""
 
-# SELECT_USER_BY_USERNAME_OR_EMAIL = """
-#     SELECT id, username, email, password, role, date_joined 
-#     FROM toeicapp_user 
-#     WHERE username = %s OR email = %s
-# """
-
-
 SELECT_USER_BY_EMAIL_OR_USERNAME = "SELECT * FROM toeicapp_user WHERE email = %s OR username = %s"
 
 

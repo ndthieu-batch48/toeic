@@ -18,8 +18,9 @@ class LoginRequest(BaseModel):
     password: str
 
     @field_validator('credential')
-    def validate_username_or_email(cls, v, values):
-        if not v and not values.get('credential'):
+    @classmethod
+    def check_not_empty(cls, v):
+        if not v.strip():
             raise ValueError('User name or email must be provided')
         return v.strip()
 

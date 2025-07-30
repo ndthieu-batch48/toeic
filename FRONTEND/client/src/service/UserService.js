@@ -1,5 +1,5 @@
 import { logError } from '../log/logger';
-import { formatAxiosError } from '../utils/errorUtil';
+import { extractAxiosError } from '../utils/errorUtil';
 import { axiosJWT, axiosBase } from './axiosInstance/axiosInstance';
 
 export const fetchData = async (url, requireAuth = false, options = {}) => {
@@ -12,8 +12,7 @@ export const fetchData = async (url, requireAuth = false, options = {}) => {
     if (!ignoreErrorCodes.includes(error.response?.status)) {
       logError('Ignore error codes', url, error);
     }
-
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -23,7 +22,7 @@ export const postData = async (url, data, requireAuth = false) => {
     const res = await instance.post(url, data);
     return { success: true, data: res.data };
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -33,7 +32,7 @@ export const deleteData = async (url, requireAuth = false) => {
     const res = await instance.delete(url);
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };
 
@@ -43,6 +42,6 @@ export const getDetailsUserById = async (userId) => {
     const res = await axiosJWT.get(url);
     return res.data;
   } catch (error) {
-    throw formatAxiosError(error);
+    throw new Error(extractAxiosError(error));
   }
 };

@@ -1,12 +1,8 @@
 import asyncio
 from fastapi import APIRouter, HTTPException, status
-from datetime import timedelta
-
 from fastapi.responses import JSONResponse
-from httpx import get
 
 from ...database.test_pool import get_cursor, with_transaction
-from ...database.connection import connect
 from ...schemas import auth as auth_schema
 from ...database import queries as auth_queries
 from ...core.app_config import app_config
@@ -29,21 +25,34 @@ from ...helpers.jwt_helper import (
 router = APIRouter()
 
 @router.post("/register")
-async def register(user: auth_schema.RegisterRequest):
-    conn = connect()
-    cursor = conn.cursor()
-    cursor.execute(auth_queries.SELECT_USER_BY_EMAIL_OR_USERNAME, (user.email, user.username))
-    existing_user = cursor.fetchone()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email or Username already taken")
+async def register(req: auth_schema.RegisterRequest):
+    @with_transaction
+    async def register_transaction(cursor, conn, email, username, password):
+        await cursor.execute(auth_queries.SELECT_USER_BY_EMAIL_OR_USERNAME, (email, username))
+        existing_user = await cursor.fetchone()
+        if existing_user:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email or Username already taken")
 
-    hashed_password = hash_password(user.password)
-    cursor.execute(auth_queries.INSERT_USER, (user.username, user.email, hashed_password))
-    conn.commit()
-    cursor.close()
-    conn.close()
+        hashed_password = hash_password(password)
+        await cursor.execute(auth_queries.INSERT_USER, (username, email, hashed_password))
 
-    return {"message": "User created successfully"}
+    try:
+        await register_transaction(email=req.email, username=req.username, password=req.password) # type: ignore
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={"message": "User created successfully"},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "message": "An error occurred while resetting password",
+                "error": str(e),
+            },
+        )
+    
 
 
 @router.post("/login", response_model = auth_schema.UserResponse)
@@ -54,41 +63,30 @@ async def login(req: auth_schema.LoginRequest):
 
         if not user:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password!",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found!",
             )
         
         if not verify_password(req.password, user.get("password")):
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid username or password!",
             )
-
-        access_token_expires = timedelta(minutes=app_config.ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={
+            
+        token_data={
                 "sub": user.get("username"), 
                 "user_id": user.get("id"), 
                 "role": user.get("role")
-            },
-            expires_delta=access_token_expires,
-        )
-        
-        refresh_token = create_refresh_token(
-            data={
-                "sub": user.get("username"), 
-                "user_id": user.get("id"), 
-                "role": user.get("role"),
-                "token_type": "refresh",
             }
-        )
+        access_token = create_access_token(token_data)
+        refresh_token = create_refresh_token(token_data)
         
         response = auth_schema.UserResponse(
             id=user.get("id"), 
             email=user["email"],
             username=user.get("username"), 
             role=user.get("role"),
-            date_joined=user["date_joined"], 
+            date_joined=user.get("date_joined"), 
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
@@ -120,19 +118,19 @@ async def refresh_token(req: auth_schema.TokenRequest):
         "user_id": payload.get("user_id"),
         "role": payload.get("role"),
     }
-    
     access_token = create_access_token(token_data)
     refresh_token_new = create_refresh_token(token_data)
     
-    return {
+    response = {
         "access_token": access_token,
         "refresh_token": refresh_token_new,
         "token_type": "bearer",
     }
+    return response 
 
 
 @router.put("/reset-password")
-async def reset_password(request: auth_schema.ResetPasswordRequest):
+async def reset_password(req: auth_schema.ResetPasswordRequest):
     @with_transaction
     async def reset_password_transaction(cursor, conn, id, new_password):
         await cursor.execute(auth_queries.SELECT_USER_BY_ID, (id,))
@@ -153,13 +151,13 @@ async def reset_password(request: auth_schema.ResetPasswordRequest):
             )
     
     try:
-        if len(request.new_password) < 6:
+        if len(req.new_password) < 6:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Password must be at least 6 characters long"
             )
-   
-        payload = verify_otp_action_token(request.token)
+
+        payload = verify_otp_action_token(req.token)
 
         if (payload.get("purpose") != "reset_password"):
             raise HTTPException(
@@ -168,16 +166,21 @@ async def reset_password(request: auth_schema.ResetPasswordRequest):
             )
             
         user_id = payload.get("sub")    
-        await reset_password_transaction(id=user_id, new_password=request.new_password) # type: ignore
+        await reset_password_transaction(id=user_id, new_password=req.new_password) # type: ignore
             
-        return {"message": "Password reset successfully"}
-        
+        return JSONResponse(
+            status_code=200,
+            content={"message": "Password reset successfully"}
+        )
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred while resetting password: {e}"
+            detail={
+                "message": "An error occurred while resetting password",
+                "error": {e}
+            }
         )
 
 
@@ -208,7 +211,7 @@ async def send_reset_password_otp(req: auth_schema.OtpServiceRequest):
         
         return JSONResponse(
             status_code=200,
-            content={"message": f"A password reset OTP will be sent to your email"}
+            content={"message": "A password reset OTP will be sent to your email"}
         )
         
     except HTTPException:
@@ -216,7 +219,10 @@ async def send_reset_password_otp(req: auth_schema.OtpServiceRequest):
     except Exception as e:
         raise HTTPException(
             status_code=500, 
-            detail=f"Error in OTP request service: {e}"
+            detail={
+                "message": "Error in OTP request service",
+                "error": {e}
+            }
         )
 
 
@@ -241,7 +247,7 @@ async def verify_reset_password_otp(req: auth_schema.VerifyOtpServiceRequest):
             status_code=200,
             content={
                 "token": reset_password_token,
-                "message": f"OTP is verified"
+                "message": "OTP is verified"
                 }
         )
         
@@ -250,5 +256,8 @@ async def verify_reset_password_otp(req: auth_schema.VerifyOtpServiceRequest):
     except Exception as e:
         raise HTTPException(
             status_code=500, 
-            detail=f"Error in OTP verification sercvice: {e}"
+            detail={
+                "message": "Error in OTP verification sercvice",
+                "error": {e}
+            }
         )
