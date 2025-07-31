@@ -24,7 +24,7 @@ class DatabaseManager:
         """Initialize database connection pool (singleton)"""
         if cls._pool is None:
             async with cls._lock:
-                if cls._pool is None:  # Double-check locking
+                if cls._pool is None:
                     try:
                         cls._pool = await aiomysql.create_pool(
                             host=app_config.MYSQL_HOST,
@@ -40,13 +40,16 @@ class DatabaseManager:
                             # Connection configuration
                             autocommit=False,
                             charset='utf8mb4',
-                            cursorclass=aiomysql.DictCursor, # Return data as dict type 
+                            cursorclass=aiomysql.DictCursor,
                             
                             # Timeout settings
                             connect_timeout=getattr(app_config, 'DB_CONNECT_TIMEOUT', 30),
                             
                             # Connection health check
-                            pool_recycle=getattr(app_config, 'DB_POOL_RECYCLE', 3600),  # 1 hour
+                            pool_recycle=getattr(app_config, 'DB_POOL_RECYCLE', 7200),  # 2 hours
+                            
+                            # SQL mode configuration
+                            sql_mode="STRICT_TRANS_TABLES",
                         )
                         if cls._pool:
                             logger.info(f"Database pool created: min={cls._pool.minsize}, max={cls._pool.maxsize}")
@@ -56,91 +59,61 @@ class DatabaseManager:
         if cls._pool is None:
             raise RuntimeError("Failed to initialize database pool")
         return cls._pool
-    
-    @classmethod
-    async def close(cls):
-        """Close database connection pool"""
-        if cls._pool:
-            logger.info("Closing database connection pool...")
-            try:
-                # First, close the pool
-                cls._pool.close()
-                
-                # Wait for all connections to be closed
-                await cls._pool.wait_closed()
-                
-                # Clear the pool reference
-                cls._pool = None
-                logger.info("Database connection pool closed successfully")
-                
-            except Exception as e:
-                logger.error(f"Error closing database pool: {e}")
-                # Don't re-raise during shutdown
-                cls._pool = None
-    
-    @classmethod
-    async def get_pool_status(cls) -> Dict[str, Any]:
-        """Get current pool status for monitoring"""
-        if cls._pool:
-            return {
-                "size": cls._pool.size,
-                "freesize": cls._pool.freesize,
-                "minsize": cls._pool.minsize,
-                "maxsize": cls._pool.maxsize,
-                "closed": cls._pool.closed
-            }
-        return {"status": "not_initialized"}
-    
-    @classmethod
-    async def health_check(cls) -> bool:
-        """Health check for database connection"""
-        try:
-            pool = await cls.initialize()
-            async with pool.acquire() as conn:
-                async with conn.cursor() as cursor:
-                    await cursor.execute("SELECT 1")
-                    result = await cursor.fetchone()
-                    return result is not None
-        except Exception as e:
-            logger.error(f"Database health check failed: {e}")
-            return False
+
 
 @asynccontextmanager
 async def get_db_connection():
-    """Get database connection from pool"""
+    """Get database connection from pool with proper error handling"""
     pool = await DatabaseManager.initialize()
     conn = None
     try:
         conn = await pool.acquire()
+        # Validate connection is alive
+        await conn.ping()
         yield conn
     except Exception as e:
         logger.error(f"Database connection error: {e}")
+        if conn:
+            try:
+                await pool.release(conn)
+            except:
+                pass  # Connection might be broken
         raise
     finally:
         if conn:
-            await pool.release(conn)
+            try:
+                await pool.release(conn)
+            except Exception as e:
+                logger.error(f"Error releasing connection: {e}")
+
 
 @asynccontextmanager
-async def get_cursor():
+async def get_cursor(auto_commit=False):
     """Get cursor with automatic connection management"""
     async with get_db_connection() as conn:
         cursor = None
         try:
             cursor = await conn.cursor()
             yield cursor, conn
+            if auto_commit and not conn.get_autocommit():
+                await conn.commit()
         except Exception as e:
+            if not conn.get_autocommit():
+                await conn.rollback()
             logger.error(f"Database cursor error: {e}")
             raise
         finally:
             if cursor:
                 await cursor.close()
 
-# Transaction decorator for automatic rollback
+
 def with_transaction(func):
     """Decorator for automatic transaction management"""
     async def wrapper(*args, **kwargs):
-        async with get_cursor() as (cursor, conn):
+        async with get_db_connection() as conn:
+            cursor = None
             try:
+                cursor = await conn.cursor()
                 result = await func(cursor, conn, *args, **kwargs)
                 await conn.commit()
                 return result
@@ -148,4 +121,7 @@ def with_transaction(func):
                 await conn.rollback()
                 logger.error(f"Transaction rolled back due to error: {e}")
                 raise
+            finally:
+                if cursor:
+                    await cursor.close()
     return wrapper

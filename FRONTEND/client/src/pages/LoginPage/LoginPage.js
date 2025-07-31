@@ -52,10 +52,10 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const isEmail = credential.includes('@');
-      const loginData = isEmail
-        ? { email: credential, password }
-        : { username: credential, password };
+      const loginData = {
+        credential: credential,
+        password: password,
+      };
 
       await login(loginData);
       showSuccess(AUTH_SUCCESS.LOGIN_SUCCESS);
