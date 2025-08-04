@@ -1,50 +1,39 @@
 import { useState } from 'react';
 
-const PartNavigationComponent = ({ activePart, onSelect, totalParts }) => {
+const PartNavComponent = ({ activePart, onSelect, totalParts }) => {
   const parts = Array.from({ length: totalParts }, (_, i) => i + 1);
 
   return (
-    <div className="d-flex flex-row justify-content-center gap-2 my-3">
-      {parts.map((part) => (
-        <button
-          key={part}
-          className={`btn rounded-oval 
-          ${activePart === part ? 'bg-primary text-white' : 'bg-light text-dark'}`}
-          style={{
-            minWidth: '70px',
-            height: '40px',
-            padding: '0 12px',
-            fontWeight: 'bold',
-            border: '1px solid #ccc',
-            borderRadius: '999px',
-          }}
-          onClick={() => onSelect(part)}>
-          Part {part}
-        </button>
-      ))}
+    <div
+      className="d-flex flex-row justify-content-start gap-2 w-75 p-1"
+      style={{ height: '50px' }}>
+      {parts.map((part) => {
+        const isActive = activePart === part;
+        const className = `btn rounded-pill w-25 fw-bold fs-4 ${isActive ? 'bg-primary text-white' : 'bg-secondary-subtle'}`;
+
+        return (
+          <button key={part} className={className} onClick={() => onSelect(part)}>
+            Part {part}
+          </button>
+        );
+      })}
     </div>
   );
 };
 
-const QuestionNavigationComponent = ({ questionsByPart = {}, activeQuestion, onSelect }) => {
+const QuestionNavComponent = ({ questionsByPart = {}, activeQuestion, onSelect }) => {
   return (
-    <div className="my-4 bg-light">
+    <div className="bg-body p-2 rounded-4 overflow-y-scroll" style={{ maxHeight: '300px' }}>
       {Object.entries(questionsByPart).map(([part, questions]) => (
-        <div key={part} className="mb-3">
-          <div className="fw-bold mb-2">Part {part}</div>
-          <div className="d-flex flex-wrap gap-2 mb-3">
+        <div key={part} className="mb-5">
+          <div className="fw-bold fs-4">Part {part}</div>
+          <div className="d-flex flex-wrap gap-2">
             {questions.map((qId) => (
               <button
                 key={qId}
-                className={`btn 
+                className={`fw-bold border border-2 rounded-circle
                 ${activeQuestion === qId ? 'bg-primary text-white' : 'bg-light text-dark'}`}
-                style={{
-                  minWidth: '40px',
-                  height: '40px',
-                  borderRadius: '999px',
-                  fontWeight: 'bold',
-                  border: '1px solid #ccc',
-                }}
+                style={{ width: '30px', height: '30px' }}
                 onClick={() => onSelect(qId)}>
                 {qId}
               </button>
@@ -56,11 +45,100 @@ const QuestionNavigationComponent = ({ questionsByPart = {}, activeQuestion, onS
   );
 };
 
-const QuestionViewerComponent = () => { };
+const AudioComponent = ({ isAudioPlaying, onTogglePlay }) => {
+  const iconClass = isAudioPlaying ? 'bi-pause-circle-fill' : 'bi-play-circle-fill';
+
+  return (
+    <div className="d-flex align-items-center gap-3 p-2 rounded-5 bg-body-secondary">
+      {/* Play/Pause button */}
+      <button
+        onClick={onTogglePlay}
+        className="border border-0 d-flex justify-content-center align-items-center"
+        style={{ width: '40px', height: '40px' }}
+        aria-label="Play/Pause">
+        <i className={`bi ${iconClass}`} style={{ fontSize: '3rem' }}></i>
+      </button>
+
+      {/* Progress bar */}
+      <div className="flex-grow-1">
+        <div className="progress bg-secondary" style={{ height: '6px' }}>
+          <div
+            className="progress-bar"
+            role="progressbar"
+            style={{ width: '30%' }}
+            aria-valuenow="30"
+            aria-valuemin="0"
+            aria-valuemax="100"></div>
+        </div>
+      </div>
+
+      {/* Duration */}
+      <div className="text-muted small fw-bold">00:30 / 02:15</div>
+    </div>
+  );
+};
+
+const QuestionItem = () => {
+  const mockQuestion = {
+    title: '71. On which day does this message take place?',
+    question: 'Choose the correct day.',
+    optionList: ['A. Saturday.', 'B. Monday.', 'C. Friday.', 'D. Tuesday.'],
+  };
+
+  const data = mockQuestion;
+
+  return (
+    <div className="p-4 border rounded-2xl shadow-sm bg-white max-w-2xl mx-auto">
+      <div className="flex items-start justify-between">
+        <strong className="text-base">{data.title}</strong>
+        <button className="text-gray-400 hover:text-gray-600">
+          <i className="bi bi-flag-fill"></i>
+        </button>
+      </div>
+
+      <div className="mt-3 text-gray-600">{data.question}</div>
+
+      <div className="mt-4 space-y-2">
+        {data.optionList.map((option, index) => (
+          <div className="flex items-center gap-2" key={index}>
+            <input
+              type="radio"
+              id={`option${index}`}
+              name="question"
+              className="accent-blue-600"
+              defaultChecked={option.startsWith('C')} // match với ảnh
+            />
+            <label htmlFor={`option${index}`} className="text-sm text-gray-800">
+              {option}
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4">
+        <select className="border rounded px-3 py-1 text-sm">
+          <option>Vietnamese</option>
+          <option>English</option>
+        </select>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        <a href="#" className="text-blue-600 text-sm hover:underline block">
+          Show script <i className="bi bi-caret-down-fill"></i>
+        </a>
+        <a href="#" className="text-blue-600 text-sm hover:underline block">
+          Show scripts translation <i className="bi bi-caret-down-fill"></i>
+        </a>
+      </div>
+    </div>
+  );
+};
 
 const PracticeTestPage = () => {
   const [activeQuestion, setActiveQuestion] = useState(1);
   const [activePart, setActivePart] = useState(1);
+
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
   const setPart = (part) => {
     if (part < 1 || part > 7) return;
@@ -114,25 +192,56 @@ const PracticeTestPage = () => {
     7: Array.from({ length: 54 }, (_, i) => 147 + i),
   };
 
-  return (
-    <>
-      <div style={{ position: 'relative', height: '100vh' }}>
-        <div style={{ position: 'fixed', top: 0, left: 0, padding: '10px', zIndex: 10 }}>
-          <PartNavigationComponent
-            totalParts={7}
-            activePart={activePart}
-            onSelect={handlePartSelect}
-          />
-        </div>
+  const handleToggleAudioPlay = () => {
+    setIsAudioPlaying((prev) => !prev);
+  };
 
-        <QuestionNavigationComponent
-          questionsByPart={questionsByPart}
-          activeQuestion={activeQuestion}
-          onSelect={handleQuestionSelect}
-        />
-        <QuestionViewerComponent questionId={activeQuestion} />
+  return (
+    <div className="d-flex flex-column">
+      {/* Title */}
+      <div className="d-flex justify-content-center mb-5">
+        <h1>Test 1</h1>
+        <button
+          className="btn btn-outline-danger rounded-pill ms-3 fw-bold fs-5"
+          style={{ width: '100px' }}>
+          Exit
+        </button>
       </div>
-    </>
+      <div className="container-fluid">
+        <div className="row g-0 gx-2">
+          {/* Header - Left column - 9/12 */}
+          <div className="col-10 bg-body rounded-5">
+            <div className="d-flex flex-column">
+              <PartNavComponent
+                totalParts={7}
+                activePart={activePart}
+                onSelect={handlePartSelect}
+              />
+              <AudioComponent
+                isAudioPlaying={isAudioPlaying}
+                onTogglePlay={handleToggleAudioPlay}
+              />
+
+              <QuestionItem />
+              <QuestionItem />
+              <QuestionItem />
+              <QuestionItem />
+              <QuestionItem />
+              <QuestionItem />
+            </div>
+          </div>
+
+          {/* Right column - 3/12 */}
+          <div className="col-2">
+            <QuestionNavComponent
+              questionsByPart={questionsByPart}
+              activeQuestion={activeQuestion}
+              onSelect={handleQuestionSelect}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
