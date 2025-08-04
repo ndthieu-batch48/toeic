@@ -27,7 +27,6 @@ httpx==0.28.1
 idna==3.10
 multidict==6.6.3
 mysql-connector-python==9.3.0
-mysqlclient==2.2.7
 packaging==25.0
 passlib==1.7.4
 pillow==11.3.0

@@ -21,7 +21,7 @@ import HomePage from './pages/HomePage/HomePage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import NotFoundPage from './pages/NotFoundPage/NotFoundPage';
 import OtpPage from './pages/OtpPage/OtpPage';
-import PracticeTestPage from './pages/PracticeTestPage/PracticeTestPage';
+import PracticeTestPage from './pages/PracticeTestPage/PracticeTestPageRefactory';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
 import SendResetPasswordEmailPage from './pages/ResetPasswordPage/SendResetPasswordEmailPage';
@@ -115,14 +115,15 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route
+          <Route path="/tests/id/practice" element={<PracticeTestPage />} />
+          {/* <Route
             path="/tests/:id/practice"
             element={
               <ProtectedRoute>
                 <PracticeTestPage />
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/test/:id/result/:resultId"
             element={

@@ -25,3 +25,7 @@ export async function sendPromptToBackend(prompt, languageId = 1) {
     throw error;
   }
 }
+
+export function sendPromptWithImageToBackend(prompt, groupId, languageId) {
+  return;
+}
