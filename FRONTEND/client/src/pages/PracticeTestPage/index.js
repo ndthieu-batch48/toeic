@@ -5,7 +5,7 @@ export const ZOOM_CONSTANTS = {
   DEFAULT_ZOOM: 1,
 };
 
-export const TRANSLATION_PARTS = {
+export const QUESTION_TYPE = {
   AUDIO_ONLY: ['Part 1', 'Part 2'],
   SCRIPT_AND_QUESTION: ['Part 3', 'Part 4'],
   TEXT_ONLY: ['Part 5', 'Part 6', 'Part 7'],
@@ -50,7 +50,7 @@ export const API_ENDPOINTS = {
   HISTORY_SAVED: (userId, testId) => `/history/saved?user_id=${userId}&test_id=${testId}`,
 };
 
-export const AUDIO_BASE_URL = 'http://11.11.4.138:8000/media';
+export const AUDIO_BASE_URL = 'https://11.11.4.138:8000/media';
 
 export const LOADING_STEPS = {
   INITIAL: 10,

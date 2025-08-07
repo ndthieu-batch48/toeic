@@ -4,15 +4,16 @@ const PartNavComponent = ({ activePart, onSelect, totalParts }) => {
   const parts = Array.from({ length: totalParts }, (_, i) => i + 1);
 
   return (
-    <div
-      className="d-flex flex-row justify-content-start gap-2 w-75 p-1"
-      style={{ height: '50px' }}>
+    <div className="d-flex flex-row justify-content-start gap-2">
       {parts.map((part) => {
         const isActive = activePart === part;
-        const className = `btn rounded-pill w-25 fw-bold fs-4 ${isActive ? 'bg-primary text-white' : 'bg-secondary-subtle'}`;
+        const activeBackgound = isActive ? 'bg-primary text-white' : 'bg-secondary-subtle';
 
         return (
-          <button key={part} className={className} onClick={() => onSelect(part)}>
+          <button
+            key={part}
+            onClick={() => onSelect(part)}
+            className={`btn rounded-pill fw-medium fs-5 px-3 py-2 ${activeBackgound}`}>
             Part {part}
           </button>
         );
@@ -84,11 +85,10 @@ const QuestionItem = () => {
     question: 'Choose the correct day.',
     optionList: ['A. Saturday.', 'B. Monday.', 'C. Friday.', 'D. Tuesday.'],
   };
-
   const data = mockQuestion;
 
   return (
-    <div className="p-4 border rounded-2xl shadow-sm bg-white max-w-2xl mx-auto">
+    <div className="p-4 border shadow-sm bg-white max-w-2xl mx-auto">
       <div className="flex items-start justify-between">
         <strong className="text-base">{data.title}</strong>
         <button className="text-gray-400 hover:text-gray-600">
@@ -210,8 +210,8 @@ const PracticeTestPage = () => {
       <div className="container-fluid">
         <div className="row g-0 gx-2">
           {/* Header - Left column - 9/12 */}
-          <div className="col-10 bg-body rounded-5">
-            <div className="d-flex flex-column">
+          <div className="col-10 bg-body rounded-5 p-3">
+            <div className="d-flex flex-column gap-3">
               <PartNavComponent
                 totalParts={7}
                 activePart={activePart}
@@ -222,12 +222,9 @@ const PracticeTestPage = () => {
                 onTogglePlay={handleToggleAudioPlay}
               />
 
-              <QuestionItem />
-              <QuestionItem />
-              <QuestionItem />
-              <QuestionItem />
-              <QuestionItem />
-              <QuestionItem />
+              <div>
+                <QuestionItem />
+              </div>
             </div>
           </div>
 
