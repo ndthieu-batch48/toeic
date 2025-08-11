@@ -3,8 +3,11 @@
 from google import genai
 from ..core.app_config import app_config
 
+import os
+os.environ['SSL_CERT_FILE'] = "C:\\cert\\tma.com.vn\\tma.com.vn-full.pem"
+os.environ['SSL_CERT_DIR'] = "C:\\cert\\tma.com.vn" 
 
-gemini_client = genai.Client(api_key=app_config.GEMINI_API_KEY,) 
+gemini_client = genai.Client(api_key=app_config.GEMINI_API_KEY) 
 
 def generate_text_with_gemini(prompt: str):
     response = gemini_client.models.generate_content(

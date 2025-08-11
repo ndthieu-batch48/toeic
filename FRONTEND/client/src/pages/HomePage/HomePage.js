@@ -24,7 +24,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await fetchData('/tests');
+        const res = await fetchData('tests/');
         setTestData(res);
       } catch (error) {
         logError('HomePage', 'Failed to fetch tests', error);

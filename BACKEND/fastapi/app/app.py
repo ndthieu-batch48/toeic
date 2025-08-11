@@ -14,7 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-app = FastAPI(title="TOEIC API", version="1.0.0")
+app = FastAPI(title="TOEIC API", version="1.0.0", root_path="/fastapi")
 
 # CORS
 app.add_middleware(
@@ -30,6 +30,7 @@ os.makedirs(app_config.MEDIA_DIRECTORY, exist_ok=True)
 app.mount("/media", StaticFiles(directory=app_config.MEDIA_DIRECTORY), name="media")
 
 # Include routers
+app.router.redirect_slashes = False
 app.include_router(api_router)
 
 @app.get("/")
