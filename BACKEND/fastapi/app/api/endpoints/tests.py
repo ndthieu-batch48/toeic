@@ -23,7 +23,7 @@ from ...database.queries import (
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Test])
+@router.get("", response_model=List[Test])
 async def get_tests():
     async with get_cursor() as (cursor, _):
         await cursor.execute(SELECT_ALL_TESTS_QUERY)

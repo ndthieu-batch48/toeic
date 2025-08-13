@@ -14,8 +14,13 @@ CREATE_HISTORY_WITH_STATUS = """
 
 CHECK_SAVED_PROGRESS = """
     SELECT * FROM toeicapp_history 
-    WHERE user_id = %s AND test_id = %s AND status = 'save'
+    WHERE user_id = %s AND test_id = %s AND status = 'save' 
     ORDER BY create_at DESC LIMIT 1
+"""
+
+DELETE_SAVED_HISTORY = """
+    DELETE FROM toeicapp_history 
+    WHERE user_id = %s AND test_id = %s AND status = 'save'
 """
 
 GENERATE_RESULT = "SELECT * FROM toeicapp_history WHERE id = %s"

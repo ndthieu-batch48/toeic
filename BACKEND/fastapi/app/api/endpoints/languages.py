@@ -7,7 +7,7 @@ from ...database.queries import GET_ALL_LANGUAGES
 
 router = APIRouter()
 
-@router.get("/", response_model=dict)
+@router.get("", response_model=dict)
 async def get_languages(current_user: dict = Depends(get_current_user)):
     conn = connect()
     cursor = conn.cursor(dictionary=True)
