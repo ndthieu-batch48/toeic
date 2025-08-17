@@ -1,20 +1,20 @@
 """History and progress related queries"""
 
-GET_ALL_HISTORY = "SELECT * FROM toeicapp_history"
+SELECT_ALL_HISTORY = "SELECT * FROM toeicapp_history"
 
 CREATE_HISTORY = """
     INSERT INTO toeicapp_history (dataprogress, part, test_id, time, type, user_id)
     VALUES (%s, %s, %s, %s, %s, %s)
 """
 
-CREATE_HISTORY_WITH_STATUS = """
+INSERT_HISTORY = """
     INSERT INTO toeicapp_history (dataprogress, part, test_id, time, type, user_id, status, create_at)
     VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
 """
 
-CHECK_SAVED_PROGRESS = """
+SELECT_SAVED_HISTORY_PROGRESS = """
     SELECT * FROM toeicapp_history 
-    WHERE user_id = %s AND test_id = %s AND status = 'save' 
+    WHERE user_id = %s AND test_id = %s AND status = 'submit' 
     ORDER BY create_at DESC LIMIT 1
 """
 

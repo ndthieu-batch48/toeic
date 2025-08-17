@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Dict, List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Json
 
 
-class History(BaseModel):
+class HistoryResponse(BaseModel):
     id: int
-    dataprogress: Dict[str, str]  # JSON field
+    dataprogress: Json[Dict[str, str]]  # JSON field
     type: str                     # varchar(20) - "Practice", "FullTest", etc.
-    part: List[str]              # JSON field - ["Part 5"]
+    part: Json[List[str]]              # JSON field - ["Part 5"]
     time: int                    # int field
     test_id: int                 # bigint field
     user_id: int                 # bigint field  
@@ -16,12 +16,11 @@ class History(BaseModel):
     time_left: Optional[int] = None  # int field, can be NULL
 
 
-class HistoryCreate(BaseModel):
-    dataprogress: Dict[str, str]  
+class HistoryCreateRequest(BaseModel):
+    dataprogress: Json[Dict[str, str]]  
     type: str
-    part: List[str] 
+    part: Json[List[str]] 
     time: int
     test_id: int
-    # user_id: int
-    status: str = "submit" #add status for test
+    status: str
     time_left: Optional[int] = None

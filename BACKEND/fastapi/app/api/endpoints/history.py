@@ -5,15 +5,15 @@ import json
 
 from fastapi.responses import JSONResponse
 
-from BACKEND.fastapi.app.database.queries.history_queries import DELETE_SAVED_HISTORY
+from ...database.queries.history_queries import DELETE_SAVED_HISTORY
 
-from ...schemas.history import History, HistoryCreate
+from ...schemas.history import HistoryResponse, HistoryCreateRequest
 from ...auth.dependencies import get_current_user
 from ...database.connection import connection_pool, connect, execute_query, get_db_cursor
 from ...database.queries import (
-    GET_ALL_HISTORY,
-    CHECK_SAVED_PROGRESS,
-    CREATE_HISTORY_WITH_STATUS,
+    SELECT_ALL_HISTORY,
+    SELECT_SAVED_HISTORY_PROGRESS,
+    INSERT_HISTORY,
     GENERATE_RESULT,
     GET_CORRECT_ANSWER,
     GET_PART_IDS_FOR_TEST,
@@ -24,66 +24,18 @@ from ...database.queries import (
 
 router = APIRouter()
 
-def parse_list_history_json(results: List[Dict]) -> List[Dict]:
-    """Parse JSON fields for a list of history records"""
-    if not results:
-        return []
-    
-    # Handle single dict (convert to list for processing)
-    if isinstance(results, dict):
-        results = [results]
-    
-    for result in results:
-        # Parse dataprogress
-        if result.get('dataprogress'):
-            try:
-                result['dataprogress'] = json.loads(result['dataprogress'])
-            except (json.JSONDecodeError, TypeError):
-                result['dataprogress'] = {}
-        else:
-            result['dataprogress'] = {}
 
-        # Parse part
-        if result.get('part'):
-            try:
-                result['part'] = json.loads(result['part'])
-            except (json.JSONDecodeError, TypeError):
-                result['part'] = []
-        else:
-            result['part'] = []
-    
+@router.get("", response_model=List[HistoryResponse])
+async def get_all_user_history(_: dict = Depends(get_current_user)):
+    results = execute_query(SELECT_ALL_HISTORY, fetch_one=True)
     return results
 
-def parse_single_history_json(result: dict) -> dict | None:
-    """Parse JSON fields for a single history record"""
-    if not result:
-        return None
-    
-    # Parse dataprogress
-    if result.get('dataprogress'):
-        result['dataprogress'] = json.loads(result['dataprogress'])
-    else:
-        result['dataprogress'] = {}
-    
-    # Parse part  
-    if result.get('part'):
-        result['part'] = json.loads(result['part'])
-    else:
-        result['part'] = []
-    
-    return result
 
-@router.get("", response_model=List[History])
-async def get_all_user_history(_: dict = Depends(get_current_user)):
-    results = execute_query(GET_ALL_HISTORY)
-    return parse_list_history_json(results)
-
-
-@router.post("saved", response_model=History)
-async def create_or_update_history(history: HistoryCreate, current_user: dict = Depends(get_current_user)):
+@router.post("/saved", response_model=HistoryResponse)
+async def create_or_update_history(history: HistoryCreateRequest, current_user: dict = Depends(get_current_user)):
     user_id = current_user.get("user_id")
     existing_saved = execute_query(
-        CHECK_SAVED_PROGRESS, 
+        SELECT_SAVED_HISTORY_PROGRESS, 
         (user_id, history.test_id), 
         fetch_one=True
     )
@@ -145,23 +97,23 @@ async def create_or_update_history(history: HistoryCreate, current_user: dict = 
         history_dict["create_at"] = datetime.now()
         return history_dict
 
-
-@router.get("/saved", response_model=Optional[History])
-async def get_saved_progress(test_id: int, current_user: dict = Depends(get_current_user)):
+# current_user: dict = Depends(get_current_user)
+@router.get("/saved", response_model=Optional[HistoryResponse])
+async def get_saved_progress(test_id: int, ):
     try:
-        user_id = current_user.get("user_id")
+        user_id =  14 # current_user.get("user_id")
 
-        saved_progress = execute_query(CHECK_SAVED_PROGRESS, (user_id, test_id), True)
+        saved_progress = execute_query(SELECT_SAVED_HISTORY_PROGRESS, (user_id, test_id), True)
         if not saved_progress:
             return Response(status_code=status.HTTP_204_NO_CONTENT)
-  
-        return parse_single_history_json(saved_progress)
+
+        return saved_progress
     
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
-                "message": "Error occurred while in save progress",
+                "message": "Error occurred while in get progress",
                 "error": str(e),
             },
         )
