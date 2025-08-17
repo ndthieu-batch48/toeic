@@ -17,7 +17,8 @@ connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     host=app_config.MYSQL_HOST,
     user=app_config.MYSQL_USER,
     password=app_config.MYSQL_PASSWORD,
-    database=app_config.MYSQL_DB
+    database=app_config.MYSQL_DB,
+    connection_timeout=10,  # tránh treo pool vô hạn
 )
 
 
@@ -30,6 +31,8 @@ def get_db_cursor(dictionary=True, autocommit=False):
             yield cursor
         if not autocommit:
             conn.commit()
+    except HTTPException:
+        raise
     except mysql.connector.IntegrityError as e:
         conn.rollback()
         raise HTTPException(
@@ -46,7 +49,7 @@ def get_db_cursor(dictionary=True, autocommit=False):
         conn.rollback()
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,  # Service issue
-            detail="Database service unavailable."
+            detail=f"Database service unavailable: {str(e)}"
         )
     except Exception as e:
         conn.rollback()
@@ -58,18 +61,18 @@ def get_db_cursor(dictionary=True, autocommit=False):
         conn.close()
 
 
-def execute_query(query: str, params=None, fetch_one=False, many=False):
-    """
-    Execute a query with better error handling.
-    - fetch_one: returns single row if True
-    - many: executes executemany() if True
-    """
-    with get_db_cursor() as cursor:
-        if many:
-            cursor.executemany(query, params or ())
-        else:
-            cursor.execute(query, params or ())
+# def execute_query(query: str, params=None, fetch_one=False, many=False):
+#     """
+#     Execute a query wraper.
+#     - fetch_one: returns single row if True
+#     - many: executes executemany() if True
+#     """
+#     with get_db_cursor() as cursor:
+#         if many:
+#             cursor.executemany(query, params or ())
+#         else:
+#             cursor.execute(query, params or ())
         
-        if fetch_one:
-            return cursor.fetchone()
-        return cursor.fetchall()
+#         if fetch_one:
+#             return cursor.fetchone()
+#         return cursor.fetchall()
