@@ -6,7 +6,7 @@ import json
 
 from fastapi.responses import JSONResponse
 
-from ...database.queries.question_queries import select_count_question_by_multiple_part
+from ...database.queries.question_queries import SELECT_COUNT_QUESTION_BY_TEST, select_count_question_by_multiple_part
 
 from ...database.queries.history_queries import DELETE_SAVED_HISTORY, SELECT_HISTORY_BY_ID, SELECT_SUBMIT_HISTORY_BY_USER
 
@@ -18,13 +18,13 @@ from ...database.queries import (
     UPDATE_HISTORY_BY_USER,
     SELECT_ALL_HISTORY,
     SELECT_HISTORY_BY_STATUS,
-    SELECT_COUNT_CORRECT_INCORRECT_BY_ANSWER_ID,
     GENERATE_RESULT,
     GET_CORRECT_ANSWER,
     GET_PART_IDS_FOR_TEST,
     GET_QUESTION_COUNT_OF_PART,
     GET_RESULT_BY_USER,
-    GET_TITLE_OF_TEST
+    GET_TITLE_OF_TEST,
+    select_count_correct_incorrect_by_answer_id,
 )
 
 router = APIRouter()
@@ -123,7 +123,7 @@ async def get_submit_history(current_user: dict = Depends(get_current_user)):
     try:
         with get_db_cursor() as cursor:
             user_id = current_user.get("user_id")
-            cursor.execute(SELECT_SUBMIT_HISTORY_BY_USER, (user_id))
+            cursor.execute(SELECT_SUBMIT_HISTORY_BY_USER, (user_id,))
             submit_history = cursor.fetchall()
             
             if not submit_history:
@@ -142,10 +142,11 @@ async def get_submit_history(current_user: dict = Depends(get_current_user)):
 
 # , _: dict = Depends(get_current_user)
 @router.get("/result/detail")
-async def get_result(history_id: str):
+async def get_result(history_id: int):
     try:
         with get_db_cursor() as cursor:
-            cursor.execute("SELECT * FROM toeicapp_history WHERE id = 3")
+            print(history_id)
+            cursor.execute(SELECT_HISTORY_BY_ID, (history_id,))
             history = cursor.fetchone()
             if not history: 
                 raise HTTPException(
@@ -161,27 +162,33 @@ async def get_result(history_id: str):
             
             # Handle question count
             total_question = None
-            if test_type == "FullTest":
-                total_question = 200 
-            query = select_count_question_by_multiple_part(part_orders)
-            params = (test_id, *part_orders)
-            cursor.execute(query, params)            
-            total_question = cursor.fetchone()
             
-            answer_id_list = None
+            # FullTest: count toàn bộ câu hỏi theo test_id
+            if test_type == "FullTest":
+                cursor.execute(SELECT_COUNT_QUESTION_BY_TEST, (test_id,))
+                total_question = cursor.fetchone()
+                
+            # PracticeTest: count theo danh sách part_orders
+            elif test_type == "Practice":
+                query = select_count_question_by_multiple_part(part_orders)
+                params = (test_id, *part_orders)
+                cursor.execute(query, params)
+                total_question = cursor.fetchone()
+            
+            answer_id_list = []
             correct_listening = 0
             correct_reading = 0
-            # for question_id, answer_id in dataprogress.items():
-            #     answer_id_list.con
-                
-            # cursor.execute(SELECT_COUNT_CORRECT_INCORRECT_BY_ANSWER_ID, )
-                
-                
-            # correct_count, incorrect_count = cursor.fetchone()
+            for question_id, answer_id in dataprogress.items():
+                answer_id_list.append(int(answer_id))
+            
+            #TODO: DEBUG "Unexpected database error: CMySQLCursor.execute() takes from 2 to 4 positional arguments but 32 were given"
+            query = select_count_correct_incorrect_by_answer_id(answer_id_list)
+            cursor.execute(query, *answer_id_list)
+            correct_count, incorrect_count = cursor.fetchone()
             
             
-            return {"dataprogress": dataprogress,"save": total_question,"type": test_type}
-               
+            return {"dataprogress": dataprogress, "total_question": total_question, "test_type": test_type, "correct_count": correct_count, "incorrect_count": incorrect_count}
+
     except HTTPException:
         raise
     except Exception as e:

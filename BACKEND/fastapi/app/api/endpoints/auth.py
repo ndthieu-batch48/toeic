@@ -150,29 +150,29 @@ async def refresh_token(req: auth_schema.TokenRequest):
 @router.put("/reset-password")
 async def reset_password(req: auth_schema.ResetPasswordRequest):
     try:
-        if len(req.new_password) < 6:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be at least 6 characters long"
-            )
-
-        payload = verify_otp_action_token(req.token)
-        if (payload.get("purpose") != "reset_password"):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or mismatched token purpose.",
-            )
-            
-        user_id = payload.get("sub")    
+        print(req.token)
         with get_db_cursor() as cursor:
-            cursor.execute(auth_queries.SELECT_USER_BY_ID, (user_id))
-            user = await cursor.fetchone()
+            payload = verify_otp_action_token(req.token)
+            if (payload.get("purpose") != "reset_password"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Invalid or mismatched token purpose.",
+                )
+            user_id = payload.get("sub")  
+            
+            cursor.execute(auth_queries.SELECT_USER_BY_ID, (user_id,))
+            user = cursor.fetchone()
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="User not found"
                 )
             
+            if len(req.new_password) < 6:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Password must be at least 6 characters long"
+                )
             hashed_password = hash_password(req.new_password)
             cursor.execute(auth_queries.UPDATE_USER_PASSWORD_BY_ID, (hashed_password, user_id))
             

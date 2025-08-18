@@ -42,7 +42,7 @@ SELECT_SUBMIT_HISTORY_BY_USER = """
 
 SELECT_HISTORY_BY_ID = """
     SELECT * FROM toeicapp_history 
-    WHERE id = %s 
+    WHERE id = %s
 """
 
 
@@ -51,14 +51,17 @@ DELETE_SAVED_HISTORY = """
     WHERE user_id = %s AND test_id = %s AND status = 'save'
 """
 
-
-SELECT_COUNT_CORRECT_INCORRECT_BY_ANSWER_ID = """
-    SELECT
-        SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct_count,
-        SUM(CASE WHEN a.is_correct = 0 THEN 1 ELSE 0 END) AS incorrect_count
-    FROM toeicapp_answer a
-    WHERE a.id IN ({placeholders});
-"""
+def select_count_correct_incorrect_by_answer_id(answer_id_list):
+    placeholders = ", ".join(["%s"] * len(answer_id_list))
+    return f"""
+        SELECT
+            SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct_count,
+            SUM(CASE WHEN a.is_correct = 0 THEN 1 ELSE 0 END) AS incorrect_count
+        FROM toeicapp_answer a
+        WHERE a.id IN ({placeholders});
+    """
+    
+# SELECT_COUNT_CORRECT_INCORRECT_BY_ANSWER_ID = 
 
 
 GENERATE_RESULT = "SELECT * FROM toeicapp_history WHERE id = %s"
