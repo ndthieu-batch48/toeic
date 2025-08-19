@@ -1,28 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
 
 from ...auth.dependencies import get_current_user
-from ...database.connection import connect
+from ...database.connection import get_db_cursor
 from ...database.queries import GET_ALL_LANGUAGES
 
 router = APIRouter()
 
 @router.get("", response_model=dict)
-async def get_languages(current_user: dict = Depends(get_current_user)):
-    conn = connect()
-    cursor = conn.cursor(dictionary=True)
-    
+async def get_languages(_: dict = Depends(get_current_user)):
     try:
-        cursor.execute(GET_ALL_LANGUAGES)
-        languages = cursor.fetchall()
+        with get_db_cursor() as cursor:
+            cursor.execute(GET_ALL_LANGUAGES)
+            languages = cursor.fetchall()
         
-        return {"success": True, "data": languages}
+        return {"languages": languages}
         
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error fetching languages: {str(e)}"
+            detail={
+                "message": "Error in get languages controller",
+                "error": str(e),
+            },
         )
-    finally:
-        cursor.close()
-        conn.close()

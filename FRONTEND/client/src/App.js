@@ -87,7 +87,6 @@ const AppContent = () => {
           {alertBox.msg}
         </Alert>
       </Snackbar>
-
       <Header />
       <main className="main-content">
         <Routes>

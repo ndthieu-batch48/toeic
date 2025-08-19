@@ -73,7 +73,7 @@ const AllUserResultPage = () => {
       for (const result of filteredResults) {
         try {
           const res = await fetchData(
-            `/history/generate_result?history_id=${result.history_id}`,
+            `/history/result/detail?history_id=${result.history_id}`,
             true
           ); // ❌ Changed from '/generate_result' to '/history/generate_result'
           updatedPoints[result.history_id] =

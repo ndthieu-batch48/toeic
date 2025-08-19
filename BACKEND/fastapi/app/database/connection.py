@@ -3,13 +3,13 @@ from fastapi import HTTPException, status
 import mysql.connector
 from ..core.app_config import app_config
 
-def connect():
-    return mysql.connector.connect(
-        host=app_config.MYSQL_HOST,
-        user=app_config.MYSQL_USER,
-        password=app_config.MYSQL_PASSWORD,
-        database=app_config.MYSQL_DB,
-    )
+# def connect():
+#     return mysql.connector.connect(
+#         host=app_config.MYSQL_HOST,
+#         user=app_config.MYSQL_USER,
+#         password=app_config.MYSQL_PASSWORD,
+#         database=app_config.MYSQL_DB,
+#     )
 
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name = "fastapi_pool",

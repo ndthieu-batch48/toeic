@@ -2,10 +2,6 @@
 
 SELECT_ALL_HISTORY = "SELECT * FROM toeicapp_history"
 
-# CREATE_HISTORY = """
-#     INSERT INTO toeicapp_history (dataprogress, part, test_id, time, type, user_id)
-#     VALUES (%s, %s, %s, %s, %s, %s)
-# """
 
 INSERT_HISTORY = """
     INSERT INTO toeicapp_history (dataprogress, type, part, time, test_id, user_id, create_at, status, time_left)
@@ -51,6 +47,7 @@ DELETE_SAVED_HISTORY = """
     WHERE user_id = %s AND test_id = %s AND status = 'save'
 """
 
+
 def select_count_correct_incorrect_by_answer_id(answer_id_list):
     placeholders = ", ".join(["%s"] * len(answer_id_list))
     return f"""
@@ -60,11 +57,40 @@ def select_count_correct_incorrect_by_answer_id(answer_id_list):
         FROM toeicapp_answer a
         WHERE a.id IN ({placeholders});
     """
-    
-# SELECT_COUNT_CORRECT_INCORRECT_BY_ANSWER_ID = 
 
 
-GENERATE_RESULT = "SELECT * FROM toeicapp_history WHERE id = %s"
+SELECT_CALCULATE_DATAPROGRESS_RESULT_BY_HISTORY_ID = """
+    SELECT
+        SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct_count,
+        SUM(CASE WHEN a.is_correct = 0 THEN 1 ELSE 0 END) AS incorrect_count,
+        SUM(CASE WHEN a.is_correct = 1 AND CAST(k.question_id AS UNSIGNED) BETWEEN 1 AND 100
+                THEN 1 ELSE 0 END) AS correct_listening,
+        SUM(CASE WHEN a.is_correct = 1 AND CAST(k.question_id AS UNSIGNED) >= 101
+                THEN 1 ELSE 0 END) AS correct_reading
+    FROM toeicapp_history h
+    JOIN JSON_TABLE(
+        JSON_KEYS(h.dataprogress),
+        '$[*]' COLUMNS(question_id VARCHAR(64) PATH '$')
+    ) AS k
+    JOIN toeicapp_answer a 
+        ON a.id = JSON_UNQUOTE(
+                    JSON_EXTRACT(h.dataprogress, CONCAT('$."', k.question_id, '"'))
+                )
+    WHERE h.id = %s;
+"""
 
 
-GET_RESULT_BY_USER = "SELECT * FROM toeicapp_history WHERE user_id = %s"
+SELECT_CALCULATE_CORRECT_ANSWER_BY_HISTORY_ID = """
+    SELECT
+        SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct_count
+    FROM toeicapp_history h
+    JOIN JSON_TABLE(
+        JSON_KEYS(h.dataprogress),
+        '$[*]' COLUMNS(question_id VARCHAR(64) PATH '$')
+    ) AS k
+    JOIN toeicapp_answer a 
+        ON a.id = JSON_UNQUOTE(
+                    JSON_EXTRACT(h.dataprogress, CONCAT('$."', k.question_id, '"'))
+                )
+    WHERE h.id = %s;
+"""
