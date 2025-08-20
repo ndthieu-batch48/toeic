@@ -10,17 +10,6 @@ import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service
 import { fetchData, postData } from '../../service/UserService';
 import './ViewDetailResult.css';
 
-// Hiển thị tab Part và Navigation
-// const partsData = {
-//   'Part 1': { start: 1, end: 6 },
-//   'Part 2': { start: 7, end: 31 },
-//   'Part 3': { start: 32, end: 70 },
-//   'Part 4': { start: 71, end: 100 },
-//   'Part 5': { start: 101, end: 130 },
-//   'Part 6': { start: 131, end: 146 },
-//   'Part 7': { start: 147, end: 200 },
-// };
-
 const ViewDetailResult = () => {
   const navigate = useNavigate();
   // const context = useContext(MyContext);
@@ -48,8 +37,6 @@ const ViewDetailResult = () => {
   const [isExplaining, setIsExplaining] = useState({}); // Trạng thái đang gọi API giải thích
   const [isEditingExplanation, setIsEditingExplanation] = useState({}); // Trạng thái chỉnh sửa lời giải thích
   const [editedExplanations, setEditedExplanations] = useState({}); // Nội dung lời giải thích đã chỉnh sửa
-
-  const { role } = useSelector((state) => state.user); // Lấy role để kiểm tra quyền admin
 
   // Check authentication
   useEffect(() => {
@@ -733,9 +720,8 @@ const ViewDetailResult = () => {
                 {showScripts[question.order] ? 'Hide script' : 'Show script'}
                 <FontAwesomeIcon
                   icon={faCaretDown}
-                  className={`script-icon ${
-                    showScripts[question.order] ? 'rotate-up' : 'rotate-down'
-                  }`}
+                  className={`script-icon ${showScripts[question.order] ? 'rotate-up' : 'rotate-down'
+                    }`}
                 />
               </button>
               {showScripts[question.order] && (
@@ -760,9 +746,8 @@ const ViewDetailResult = () => {
                     : 'Show translation'}
                 <FontAwesomeIcon
                   icon={faCaretDown}
-                  className={`script-icon ${
-                    showTranslations[question.order] ? 'rotate-up' : 'rotate-down'
-                  }`}
+                  className={`script-icon ${showTranslations[question.order] ? 'rotate-up' : 'rotate-down'
+                    }`}
                 />
               </button>
               {showTranslations[question.order] && (
@@ -848,9 +833,8 @@ const ViewDetailResult = () => {
                     : 'Explain by AI'}
                 <FontAwesomeIcon
                   icon={faCaretDown}
-                  className={`script-icon ${
-                    showExplanations[question.order] ? 'rotate-up' : 'rotate-down'
-                  }`}
+                  className={`script-icon ${showExplanations[question.order] ? 'rotate-up' : 'rotate-down'
+                    }`}
                 />
               </button>
               {showExplanations[question.order] && (
@@ -940,11 +924,10 @@ const ViewDetailResult = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${
-                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                }`}
+                  }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>

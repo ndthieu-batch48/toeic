@@ -2275,8 +2275,8 @@ const PracticeTestPage = () => {
               <button
                 key={questionId}
                 className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
-                    ? 'active'
-                    : ''
+                  ? 'active'
+                  : ''
                   } ${buttonClass}`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}

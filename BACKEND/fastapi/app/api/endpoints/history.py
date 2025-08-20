@@ -104,7 +104,7 @@ async def get_save_progress_history(test_id: int, current_user: dict = Depends(g
             save_progress = cursor.fetchone()
             
             if not save_progress:
-                return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=None)
+                return None
 
             return save_progress
     
@@ -126,11 +126,11 @@ async def get_result_list(current_user: dict = Depends(get_current_user)):
             cursor.execute(SELECT_SUBMIT_HISTORY_BY_USER, (user_id,))
             submit_history_list = cursor.fetchall()
             
+            
             if not submit_history_list:
-                return JSONResponse(status_code=status.HTTP_204_NO_CONTENT, content=[])
-
-            results = []  # collect all histories here
-
+                return []
+            
+            results = []
             for history in submit_history_list:
 
                 # Prepare data
@@ -171,7 +171,7 @@ async def get_result_list(current_user: dict = Depends(get_current_user)):
                 results.append({
                     "history_id": history_id,
                     "test_id": test_id,
-                    "type": test_type,
+                    "test_type": test_type,
                     "create_at": create_at,
                     "duration": duration,
                     "testname": testname,
@@ -209,6 +209,7 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             test_id = history.get("test_id")
             test_type = history.get("type")
             create_at = history.get("create_at")
+            duration = history.get("time")
             
             # Handle question count
             total_question = 0
@@ -247,6 +248,7 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             "no_answer": no_answer,
             "accuracy": round(accuracy, 2),
             "create_at": create_at,
+            "duration": duration
         }
 
     except HTTPException:

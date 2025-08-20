@@ -72,22 +72,22 @@ const RecentResults = () => {
         {recentResults.map((result, index) => (
           <div key={index} className="result-card">
             <h3>{result.testname}</h3>
-            <span className={`test-type ${result.type === 'FullTest' ? 'full-test' : 'practice'}`}>
-              {result.type}
+            <span
+              className={`test-type ${result.test_type === 'FullTest' ? 'full-test' : 'practice'}`}>
+              {result.test_type}
             </span>
-            {result.parts && (
+            {result.part_list && (
               <div className="parts">
-                {result.parts.map((part, idx) => (
+                {result.part_list.map((part, idx) => (
                   <span key={idx} className="part">
                     {part}
                   </span>
                 ))}
               </div>
             )}
-            <p>Date: {result.date}</p>
-            <p>Time done: {result.duration}</p>
-            <p>Result: {result.score}</p>
-            <p>Point: {points[result.history_id] ?? 'Loading...'}</p>
+            <p>Date: {new Date(result.create_at).toLocaleString()}</p>
+            <p>Duration: {result.duration}</p>
+            <p>Overall result: {result.score}</p>
             <label
               className="detail-label"
               onClick={() => handleDetail(result.test_id, result.history_id)}>

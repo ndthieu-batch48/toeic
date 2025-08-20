@@ -36,6 +36,7 @@ class HistoryResultDetailResponse(BaseModel):
     no_answer: int
     accuracy: float
     create_at: datetime
+    duration: int
 
 
 class HitoryResultListResponse(BaseModel):
@@ -45,5 +46,5 @@ class HitoryResultListResponse(BaseModel):
     create_at: datetime
     duration: int
     testname: str
-    score: int
-    part_list: str
+    score: str
+    part_list: List[str]

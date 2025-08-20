@@ -31,7 +31,6 @@ const ResultPage = () => {
       try {
         fetchData(`/history/result/detail?history_id=${resultId}`, true).then((res) => {
           if (res) {
-            console.log(res);
             setSelectedHistory(res); // Cập nhật trực tiếp selectedHistory
           } else {
             showError('You do not have permission to view this test!');
@@ -92,14 +91,14 @@ const ResultPage = () => {
                 <FontAwesomeIcon icon={faPenToSquare} />
               </span>
               <span>Accuracy:</span>
-              <span>{selectedHistory.accurate}%</span>
+              <span>{selectedHistory.accuracy}%</span>
             </div>
             <div className="icon-summary-text">
               <span>
                 <FontAwesomeIcon icon={faClock} />
               </span>
-              <span>Time done:</span>
-              <span>{formatTime(selectedHistory.time)}</span>
+              <span>Duration:</span>
+              <span>{formatTime(selectedHistory.duration)}</span>
             </div>
           </div>
 
@@ -108,7 +107,7 @@ const ResultPage = () => {
               <span>
                 <FontAwesomeIcon icon={faCircleCheck} size="2xl" style={{ color: '#3eb151' }} />
               </span>
-              <span style={{ color: '#3eb151' }}>Right answer</span>
+              <span style={{ color: '#3eb151' }}>Correct answer</span>
               <span>{selectedHistory.correct_count}</span>
             </div>
             <div className="icon-stat-text">

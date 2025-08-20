@@ -215,12 +215,10 @@ const ViewResultUserDo = () => {
             return res;
           }),
           fetchData('/tests/answer', false).then((data) => {
-            // ❌ Changed from '/test/answer' to '/tests/answer'
             updateProgress();
             return data;
           }),
           fetchData('/tests/testpart', false).then((data) => {
-            // ❌ Changed from '/tests/testpart' to '/tests/testpart'
             updateProgress();
             return data;
           }),
@@ -228,13 +226,11 @@ const ViewResultUserDo = () => {
             updateProgress();
             return data;
           }),
-          fetchData('/history', true).then((data) => {
-            // ✅ Correct (history router)
+          fetchData('/history/all', true).then((data) => {
             updateProgress();
             return data;
           }),
           fetchData('/languages', true).then((data) => {
-            // ✅ Correct (languages router)
             updateProgress();
             return data;
           }),
@@ -333,7 +329,7 @@ const ViewResultUserDo = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        fetchData('/history', true).then((res) => {
+        fetchData('/history/all', true).then((res) => {
           // Lọc bài test thuộc về user đã đăng nhập
           const userId = JSON.parse(localStorage.getItem('user'))?.id; // Lấy user ID từ localStorage
           const history = res.find(
@@ -1209,12 +1205,12 @@ const ViewResultUserDo = () => {
             prev.map((group) =>
               group.id === groupId
                 ? {
-                    ...group,
-                    explain_question: {
-                      ...group.explain_question,
-                      [questionActualId]: res.data.explain_question,
-                    },
-                  }
+                  ...group,
+                  explain_question: {
+                    ...group.explain_question,
+                    [questionActualId]: res.data.explain_question,
+                  },
+                }
                 : group
             )
           );
@@ -1409,9 +1405,9 @@ const ViewResultUserDo = () => {
           prev.map((group) =>
             group.id === mediaId
               ? {
-                  ...group,
-                  translate_script: res.data.translate_content,
-                }
+                ...group,
+                translate_script: res.data.translate_content,
+              }
               : group
           )
         );
@@ -2095,13 +2091,11 @@ const ViewResultUserDo = () => {
             return (
               <button
                 key={questionId}
-                className={`question-number ${isAnswered ? 'answered' : ''} ${
-                  isCorrect ? 'correct' : ''
-                } ${isIncorrect ? 'incorrect' : ''} ${
-                  selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
+                className={`question-number ${isAnswered ? 'answered' : ''} ${isCorrect ? 'correct' : ''
+                  } ${isIncorrect ? 'incorrect' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
                     ? 'active'
                     : ''
-                }`}
+                  }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
               </button>
