@@ -13,7 +13,7 @@ async def get_languages(_: dict = Depends(get_current_user)):
             cursor.execute(GET_ALL_LANGUAGES)
             languages = cursor.fetchall()
         
-        return {"languages": languages}
+        return {"data": languages}
         
     except Exception as e:
         raise HTTPException(

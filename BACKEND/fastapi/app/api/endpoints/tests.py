@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 import json
 
-from ...schemas.test import Test, Part, TestPart
+from ...schemas.test import Test, Part, TestDetail, TestPart
 from ...schemas.question import Question, PartQuestionsResponse, TestPartQuestion, Answer2, Answer
 from ...schemas.media import Media
 from ...auth.dependencies import get_current_user
@@ -195,4 +195,19 @@ async def get_media_by_test(test_id: int):
         results = cursor.fetchall()
     return [Media(**row) for row in results]
 
+
+@router.get("/detail/{test_id}", response_model=TestDetail)
+async def get_test_detail_by_id(test_id: int):
+    with get_db_cursor() as cursor:
+        cursor.callproc("SELECT_TEST_DETAIL_PROC", (test_id,))
+        result_set = next(cursor.stored_results(), None)
+        
+        if not result_set:
+            return {"detail": "No result from procedure"}
+        
+        row = result_set.fetchone()
+        if not row or "test_object" not in row:
+            return {"detail": "Procedure returned empty or invalid data"}
+        
+        return json.loads(row["test_object"])
 

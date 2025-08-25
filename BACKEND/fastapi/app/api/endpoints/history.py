@@ -54,8 +54,10 @@ async def create_submit_history(
                 SELECT_HISTORY_BY_STATUS, 
                 (user_id, req.test_id, "save")
             )
+            history_id = None
+            
             existing_saved = cursor.fetchone()
-
+            history_id = existing_saved.get("id")
             if existing_saved:
                 cursor.execute(
                     UPDATE_HISTORY_BY_USER,
@@ -81,9 +83,11 @@ async def create_submit_history(
                         req.status,
                     ),
                 )
+                
+                history_id = cursor.lastrowid
 
         # commit sẽ tự chạy khi ra khỏi with (commit_on_exit=True mặc định)
-        return {"message": f"History {req.type} successfully"}
+        return {"id": history_id, "message": f"History {req.type} successfully"}
 
     except Exception as e:
         raise HTTPException(

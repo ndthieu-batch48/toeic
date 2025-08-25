@@ -84,11 +84,23 @@ const TestDetailPage = () => {
           setHasSavedProgress(null);
           return;
         }
-        const res = await fetchData(`/history/save?test_id=${id}`, true);
-        setHasSavedProgress(res);
+        const res = await fetchData(`/history/save?test_id=${id}`, true, {
+          ignoreErrorCodes: [404],
+        });
+        // Chỉ set hasSavedProgress nếu có bản ghi "Saved" hợp lệ
+        if (res && res.status === 'save') {
+          setHasSavedProgress(res);
+        } else {
+          setHasSavedProgress(null);
+        }
       } catch (error) {
-        showError('Failed to check saved progress.', error);
-        setHasSavedProgress(null);
+        if (error.status === 404) {
+          showSuccess('No saved progress found');
+          setHasSavedProgress(null);
+        } else {
+          showError('Failed to check saved progress.');
+          setHasSavedProgress(null);
+        }
       }
     };
     if (userState.isLoggedIn) checkSavedProgress();
@@ -110,6 +122,7 @@ const TestDetailPage = () => {
       return;
     }
 
+    // const userState = JSON.parse(localStorage.getItem("userState"));
     if (hasSavedProgress && hasSavedProgress.status === 'save') {
       const confirm = window.confirm(
         'You have a saved test. Starting a new test will delete it. Are you sure?'
@@ -117,7 +130,7 @@ const TestDetailPage = () => {
       if (!confirm) return;
 
       try {
-        await deleteData(`/history/save?user_id=${userState.id}&test_id=${id}`, true);
+        await deleteData(`/history/save?test_id=${id}`, true);
         setHasSavedProgress(null);
       } catch (error) {
         logError('Test detail page', 'Failed to delete saved progress', error);

@@ -10,7 +10,7 @@ import CountdownTimer from '../../components/Countdown/Countdown';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import { TranslationPrompts } from '../../prompts/prompt';
 import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
-import { deleteData, fetchData, postData } from '../../service/UserService';
+import { fetchData, postData } from '../../service/UserService';
 import './PracticeTestPage.css';
 
 const PracticeTestPage = () => {
@@ -239,6 +239,7 @@ const PracticeTestPage = () => {
           }, 1000);
         } else {
           const fetchPromises = [
+            fetchData('languages', true),
             fetchData('/tests/questions', true),
             fetchData('/tests/part', true),
             fetchData(`/tests/${id}/media`, true),
@@ -250,7 +251,6 @@ const PracticeTestPage = () => {
             fetchData('/tests/answer'),
             fetchData('/tests/testpart'),
             fetchData('/tests'),
-            fetchData('/languages', true),
           ];
 
           const totalFetches = fetchPromises.length;
@@ -285,11 +285,11 @@ const PracticeTestPage = () => {
             await Promise.all(promisesWithProgress);
 
           // Process languages to ensure it's an array
-          const normalizedLanguages = Array.isArray(languages?.data)
-            ? languages.data
-            : Array.isArray(languages)
-              ? languages
-              : [];
+          // const normalizedLanguages = Array.isArray(languages?.data)
+          //   ? languages.data
+          //   : Array.isArray(languages)
+          //     ? languages
+          //     : [];
 
           await set(cacheKey, {
             questions,
@@ -298,7 +298,7 @@ const PracticeTestPage = () => {
             answers,
             testParts,
             tests,
-            languages: normalizedLanguages,
+            languages: languages,
             timestamp: Date.now(),
           });
           updateProgress(90); // Cache completed
@@ -380,11 +380,7 @@ const PracticeTestPage = () => {
           // If no valid localStorage data or new session, try to restore from API
           if (!savedTime || isNewSession || hasTimeLimitChanged) {
             try {
-              const user = JSON.parse(localStorage.getItem('user'));
-              const savedProgressResponse = await fetchData(
-                `/history/saved?user_id=${user.id}&test_id=${id}`,
-                true
-              );
+              const savedProgressResponse = await fetchData(`/history/save?test_id=${id}`, true);
               if (savedProgressResponse && savedProgressResponse.status === 'save') {
                 const { time, time_left } = savedProgressResponse;
                 if (time_left !== null) {
@@ -2275,8 +2271,8 @@ const PracticeTestPage = () => {
               <button
                 key={questionId}
                 className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
-                  ? 'active'
-                  : ''
+                    ? 'active'
+                    : ''
                   } ${buttonClass}`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
@@ -2338,16 +2334,16 @@ const PracticeTestPage = () => {
         confirm = window.confirm('Do you sure want to submit?');
       }
       if (confirm || auto === 'auto') {
-        const user = JSON.parse(localStorage.getItem('user'));
-        try {
-          await deleteData(`/history/saved?user_id=${user.id}&test_id=${id}`, true);
-        } catch (err) {
-          if (err.message.includes('404')) {
-            console.log('No saved progress to delete, proceeding with submit.');
-          } else {
-            throw err;
-          }
-        }
+        // const user = JSON.parse(localStorage.getItem('user'));
+        // try {
+        //   await deleteData(`/history/saved?user_id=${user.id}&test_id=${id}`, true);
+        // } catch (err) {
+        //   if (err.message.includes('404')) {
+        //     console.log('No saved progress to delete, proceeding with submit.');
+        //   } else {
+        //     throw err;
+        //   }
+        // }
 
         const usedTime = timePick > 0 ? Number(timePick) - timeLeft : timeLeft;
         const submitPayload = {

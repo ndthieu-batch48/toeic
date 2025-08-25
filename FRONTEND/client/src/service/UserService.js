@@ -1,7 +1,7 @@
 import { extractAxiosError } from '../utils/errorUtil';
 import { axiosJWT, axiosBase } from './axiosInstance/axiosInstance';
 
-export const fetchData = async (url, requireAuth = false, options = {}) => {
+export const fetchData = async (url, requireAuth = false) => {
   try {
     const instance = requireAuth === true ? axiosJWT : axiosBase;
     const res = await instance.get(url);

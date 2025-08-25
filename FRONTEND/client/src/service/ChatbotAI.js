@@ -8,7 +8,7 @@ export async function sendPromptToBackend(prompt, languageId = 1) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/gemini/chat`, {
+    const res = await fetch(`${process.env.REACT_APP_API_URL}gemini/chat`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ prompt, language_id: languageId }),
