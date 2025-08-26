@@ -196,18 +196,41 @@ async def get_media_by_test(test_id: int):
     return [Media(**row) for row in results]
 
 
-@router.get("/detail/{test_id}", response_model=TestDetail)
-async def get_test_detail_by_id(test_id: int):
+@router.get("/all", response_model=List[Test])
+async def get_all_test():
     with get_db_cursor() as cursor:
-        cursor.callproc("SELECT_TEST_DETAIL_PROC", (test_id,))
-        result_set = next(cursor.stored_results(), None)
-        
-        if not result_set:
-            return {"detail": "No result from procedure"}
-        
-        row = result_set.fetchone()
-        if not row or "test_object" not in row:
-            return {"detail": "Procedure returned empty or invalid data"}
-        
-        return json.loads(row["test_object"])
+        cursor.execute(SELECT_ALL_TESTS_QUERY)
+        response = cursor.fetchall()
+    return response
 
+
+# @router.get("/{id}/detail")
+# async def get_test_detail(id: int):
+#     with get_db_cursor() as cursor:
+#         return cursor.callproc("SELECT_TEST_DETAIL_PROC", (id,))
+
+@router.get("/{id}/parts/{part_id}/detail")
+async def get_part_detail(id: int, part_id: int):
+    try:
+        with get_db_cursor() as cursor:
+            result_args = cursor.callproc("SELECT_PART_DETAIL_PROC", (id, part_id, None))
+            
+            part_detail_raw = result_args["SELECT_PART_DETAIL_PROC_arg3"]
+            if  part_detail_raw is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, 
+                    detail=f"Part detail not found for test_id {id} and part_id {part_id}"
+                )
+            
+            return json.loads(part_detail_raw)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "message": "Error in get part detail controller",
+                "error": {e}
+            }
+        )

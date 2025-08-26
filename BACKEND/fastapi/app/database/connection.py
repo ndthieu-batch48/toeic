@@ -3,13 +3,6 @@ from fastapi import HTTPException, status
 import mysql.connector
 from ..core.app_config import app_config
 
-# def connect():
-#     return mysql.connector.connect(
-#         host=app_config.MYSQL_HOST,
-#         user=app_config.MYSQL_USER,
-#         password=app_config.MYSQL_PASSWORD,
-#         database=app_config.MYSQL_DB,
-#     )
 
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name = "fastapi_pool",
@@ -59,20 +52,3 @@ def get_db_cursor(dictionary=True, autocommit=False):
         )
     finally:
         conn.close()
-
-
-# def execute_query(query: str, params=None, fetch_one=False, many=False):
-#     """
-#     Execute a query wraper.
-#     - fetch_one: returns single row if True
-#     - many: executes executemany() if True
-#     """
-#     with get_db_cursor() as cursor:
-#         if many:
-#             cursor.executemany(query, params or ())
-#         else:
-#             cursor.execute(query, params or ())
-        
-#         if fetch_one:
-#             return cursor.fetchone()
-#         return cursor.fetchall()
