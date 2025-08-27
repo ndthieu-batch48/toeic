@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 import json
 
-from ...schemas.test import Test, Part, TestDetail, TestPart
+from ...schemas.test import Test, TestDB, Part, TestDetail, TestPart
 from ...schemas.question import Question, PartQuestionsResponse, TestPartQuestion, Answer2, Answer
 from ...schemas.media import Media
 from ...auth.dependencies import get_current_user
@@ -196,33 +196,58 @@ async def get_media_by_test(test_id: int):
     return [Media(**row) for row in results]
 
 
-@router.get("/all", response_model=List[Test])
+@router.get("/all")
 async def get_all_test():
-    with get_db_cursor() as cursor:
-        cursor.execute(SELECT_ALL_TESTS_QUERY)
-        response = cursor.fetchall()
-    return response
+    try:
+        with get_db_cursor(dictionary=False) as cursor:
+            result_args = cursor.callproc("SELECT_ALL_TEST_PROC", [0])
+
+            test_json = json.loads(result_args[0])
+            
+            if not test_json:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, 
+                    detail="List tests not found"
+                )
+            
+            return test_json
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "message": "Error in get all test controller",
+                "error": str(e),
+            },
+        )
 
 
-# @router.get("/{id}/detail")
-# async def get_test_detail(id: int):
-#     with get_db_cursor() as cursor:
-#         return cursor.callproc("SELECT_TEST_DETAIL_PROC", (id,))
+@router.get("/{id}")
+async def get_test_detail(id: int):
+    with get_db_cursor(dictionary=False) as cursor:
+        result_args = cursor.callproc("SELECT_TEST_DETAIL_PROC", [id, 0])
+        
+        test_json = json.loads(result_args[1]) 
+        
+        return test_json
+
 
 @router.get("/{id}/parts/{part_id}/detail")
 async def get_part_detail(id: int, part_id: int):
     try:
-        with get_db_cursor() as cursor:
-            result_args = cursor.callproc("SELECT_PART_DETAIL_PROC", (id, part_id, None))
+        with get_db_cursor(dictionary=False) as cursor:
+            result_args = cursor.callproc("SELECT_PART_DETAIL_PROC", [id, part_id, 0])
             
-            part_detail_raw = result_args["SELECT_PART_DETAIL_PROC_arg3"]
-            if  part_detail_raw is None:
+            part_json = json.loads(result_args[2])
+            
+            if  part_json is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND, 
                     detail=f"Part detail not found for test_id {id} and part_id {part_id}"
                 )
             
-            return json.loads(part_detail_raw)
+            return part_json
     
     except HTTPException:
         raise

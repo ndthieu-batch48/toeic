@@ -84,9 +84,7 @@ const TestDetailPage = () => {
           setHasSavedProgress(null);
           return;
         }
-        const res = await fetchData(`/history/save?test_id=${id}`, true, {
-          ignoreErrorCodes: [404],
-        });
+        const res = await fetchData(`/history/save?test_id=${id}`, true);
         // Chỉ set hasSavedProgress nếu có bản ghi "Saved" hợp lệ
         if (res && res.status === 'save') {
           setHasSavedProgress(res);

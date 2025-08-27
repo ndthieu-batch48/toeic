@@ -7,11 +7,12 @@ from ..core.app_config import app_config
 connection_pool = mysql.connector.pooling.MySQLConnectionPool(
     pool_name = "fastapi_pool",
     pool_size = 20,
+    pool_reset_session = True,
     host=app_config.MYSQL_HOST,
     user=app_config.MYSQL_USER,
     password=app_config.MYSQL_PASSWORD,
     database=app_config.MYSQL_DB,
-    connection_timeout=10,  # tránh treo pool vô hạn
+    connection_timeout = 10,  # tránh treo pool vô hạn
 )
 
 
@@ -20,10 +21,11 @@ def get_db_cursor(dictionary=True, autocommit=False):
     """Context manager for database operations"""
     conn = connection_pool.get_connection()
     try:
-        with conn.cursor(dictionary=dictionary, buffered=True) as cursor:
-            yield cursor
-        if not autocommit:
-            conn.commit()
+        if conn and conn.is_connected():
+            with conn.cursor(dictionary=dictionary, buffered=True) as cursor:
+                yield cursor
+            if not autocommit:
+                conn.commit()
     except HTTPException:
         raise
     except mysql.connector.IntegrityError as e:
@@ -52,3 +54,5 @@ def get_db_cursor(dictionary=True, autocommit=False):
         )
     finally:
         conn.close()
+
+

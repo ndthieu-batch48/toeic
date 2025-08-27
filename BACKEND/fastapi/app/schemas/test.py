@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional
 
 class Test(BaseModel):
@@ -60,3 +60,24 @@ class PartDetail(BaseModel):
 
 class TestDetail(BaseModel):
     part_list: List[PartDetail]
+
+
+class PartDB(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+    
+    id: int = Field(validation_alias="part_id")
+    order: str = Field(validation_alias="part_order")
+    title: str = Field(validation_alias="part_title")
+    total_questions: int = Field(validation_alias="total_question")
+
+class TestDB(BaseModel):
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True)
+    
+    id: int = Field(validation_alias="test_id")
+    title: str = Field(validation_alias="test_title")
+    duration: int = Field(validation_alias="test_duration")
+    description: str = Field(validation_alias="test_description")
+    parts: List[Part] = Field(validation_alias="part_list")
+
+
+
