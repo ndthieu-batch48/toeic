@@ -115,7 +115,6 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          {/* <Route path="/tests/practice" element={<PracticeTestPage />} /> */}
           <Route
             path="/tests/:id/practice"
             element={

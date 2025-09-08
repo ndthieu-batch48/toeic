@@ -25,7 +25,7 @@ SELECT_COUNT_QUESTION_BY_TEST = """
     SELECT count(q.id) AS question_by_test_count
     FROM toeicapp_testpart tp
     JOIN toeicapp_question q ON tp.part_id = q.part_id
-    WHERE test_id = s%;
+    WHERE test_id = %s;
 """
 
 

@@ -29,7 +29,7 @@ const ResultPage = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        fetchData(`/history/result/detail?history_id=${resultId}`, true).then((res) => {
+        fetchData(`history/result/detail?history_id=${resultId}`, true).then((res) => {
           if (res) {
             setSelectedHistory(res); // Cập nhật trực tiếp selectedHistory
           } else {

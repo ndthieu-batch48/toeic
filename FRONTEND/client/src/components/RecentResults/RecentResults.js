@@ -21,7 +21,7 @@ const RecentResults = () => {
     }
     const fetchResults = async () => {
       try {
-        const res = await fetchData(`/history/result/list`, true);
+        const res = await fetchData(`history/result/list`, true);
         setResultsData(res);
       } catch (error) {
         logError('RecentResults component', `/history/result/list`, error);
@@ -48,7 +48,7 @@ const RecentResults = () => {
       for (const result of recentResults) {
         try {
           const res = await fetchData(
-            `/history/result/detail?history_id=${result.history_id}`,
+            `history/result/detail?history_id=${result.history_id}`,
             true
           );
           updatedPoints[result.history_id] =

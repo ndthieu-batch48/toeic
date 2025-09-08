@@ -17,13 +17,13 @@ class HistoryResponse(BaseModel):
 
 
 class HistoryCreateRequest(BaseModel):
-    dataprogress: Dict[str, str] 
+    dataprogress: Dict[str, str]
     type: Literal["Practice", "FullTest"]
     part: List[str]
     time: int
     test_id: int
-    status: Literal["save", "submit"]
-    time_left: Optional[int] = None
+    status: Literal["save", "submit"] = "save"
+    time_left: Optional[int] = 0
 
 
 class HistoryResultDetailResponse(BaseModel):

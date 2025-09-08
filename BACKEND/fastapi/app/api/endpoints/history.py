@@ -54,8 +54,8 @@ async def create_submit_history(
             history_id = None
             
             existing_saved = cursor.fetchone()
-            history_id = existing_saved.get("id")
             if existing_saved:
+                history_id = existing_saved.get("id")
                 cursor.execute(
                     UPDATE_HISTORY_BY_USER,
                     (
@@ -64,7 +64,8 @@ async def create_submit_history(
                         part_json,
                         req.time,
                         req.status,
-                        user_id, req.test_id,
+                        user_id, 
+                        req.test_id,
                     ),
                 )
             else:
@@ -80,7 +81,6 @@ async def create_submit_history(
                         req.status,
                     ),
                 )
-                
                 history_id = cursor.lastrowid
 
         # commit sẽ tự chạy khi ra khỏi with (commit_on_exit=True mặc định)
@@ -153,7 +153,7 @@ async def get_result_list(current_user: dict = Depends(get_current_user)):
                     # FullTest: count toàn bộ câu hỏi theo test_id
                     cursor.execute(SELECT_COUNT_QUESTION_BY_TEST, (test_id,))
                     row = cursor.fetchone()
-                    total_question = row.get("question_by_part_count")
+                    total_question = row.get("question_by_test_count")
                 elif test_type == "Practice":
                     # PracticeTest: count theo danh sách part_orders
                     part_orders = [str(p) for p in part]
@@ -218,7 +218,7 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             if test_type == "FullTest":
                 cursor.execute(SELECT_COUNT_QUESTION_BY_TEST, (test_id,))
                 row = cursor.fetchone()
-                total_question = row.get("question_by_part_count")
+                total_question = row.get("question_by_test_count")
             # # PracticeTest: count theo danh sách part_orders
             elif test_type == "Practice":
                 part_orders = [str(p) for p in part]
@@ -262,5 +262,4 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
                 "error": {e}
             }
         )
-
 

@@ -239,32 +239,31 @@ const PracticeTestPage = () => {
           }, 1000);
         } else {
           const fetchPromises = [
-            fetchData('languages', true),
             fetchData('/tests/questions', true),
             fetchData('/tests/part', true),
-            fetchData(`/tests/${id}/media`, true),
-            //   .then((res) => {
-            //   const normalizedGroupMedia = Array.isArray(res) ? res : res?.res || [];
-            //   setGroupData(normalizedGroupMedia);
-            //   return normalizedGroupMedia;
-            // }),
-            fetchData('/tests/answer'),
-            fetchData('/tests/testpart'),
-            fetchData('/tests'),
+            fetchData(`/tests/${id}/media`, true).then((res) => {
+              const normalizedGroupMedia = Array.isArray(res) ? res : res?.res || [];
+              setGroupData(normalizedGroupMedia);
+              return normalizedGroupMedia;
+            }),
+            fetchData('tests/answer'),
+            fetchData('tests/testpart'),
+            fetchData('tests'),
+            fetchData('languages', true),
           ];
 
           const totalFetches = fetchPromises.length;
           let completedFetches = 0;
 
-          // Update progress based on completed fetches
+          // Cập nhật phần trăm dựa trên số fetch hoàn thành
           const updateProgress = () => {
             completedFetches += 1;
-            const progress = Math.min(Math.round((completedFetches / totalFetches) * 80) + 10, 90);
+
+            const progress = Math.min(Math.round((completedFetches / totalFetches) * 80) + 10, 90); // Bắt đầu từ 10%, tối đa 90%
             setLoadingProgress(progress);
-            console.log(`Progress updated: ${progress}%`);
           };
 
-          // Attach progress update to each promise
+          // Gắn cập nhật phần trăm cho mỗi promise
           const promisesWithProgress = fetchPromises.map((promise) =>
             promise
               .then((result) => {
@@ -273,23 +272,23 @@ const PracticeTestPage = () => {
               })
               .catch((error) => {
                 console.error('Fetch failed:', error);
-                updateProgress(); // Still increase progress to avoid getting stuck
+                updateProgress(); // Vẫn tăng progress để không bị kẹt
                 throw error;
               })
           );
 
-          // Start from 10%
+          // Bắt đầu từ 10%
           setLoadingProgress(10);
 
           [questions, parts, groupMedia, answers, testParts, tests, languages] =
             await Promise.all(promisesWithProgress);
 
-          // Process languages to ensure it's an array
-          // const normalizedLanguages = Array.isArray(languages?.data)
-          //   ? languages.data
-          //   : Array.isArray(languages)
-          //     ? languages
-          //     : [];
+          // Xử lý languages để đảm bảo là mảng
+          const normalizedLanguages = Array.isArray(languages?.data)
+            ? languages.data
+            : Array.isArray(languages)
+              ? languages
+              : [];
 
           await set(cacheKey, {
             questions,
@@ -298,7 +297,7 @@ const PracticeTestPage = () => {
             answers,
             testParts,
             tests,
-            languages: languages,
+            languages: normalizedLanguages,
             timestamp: Date.now(),
           });
           updateProgress(90); // Cache completed
@@ -380,7 +379,8 @@ const PracticeTestPage = () => {
           // If no valid localStorage data or new session, try to restore from API
           if (!savedTime || isNewSession || hasTimeLimitChanged) {
             try {
-              const savedProgressResponse = await fetchData(`/history/save?test_id=${id}`, true);
+              const user = JSON.parse(localStorage.getItem('user'));
+              const savedProgressResponse = await fetchData(`history/saved?test_id=${id}`, true);
               if (savedProgressResponse && savedProgressResponse.status === 'save') {
                 const { time, time_left } = savedProgressResponse;
                 if (time_left !== null) {
@@ -780,7 +780,7 @@ const PracticeTestPage = () => {
     if (!isShowing && groupId && !isNaN(Number(groupId))) {
       try {
         const res = await fetchData(
-          `/translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
+          `translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
 
@@ -892,7 +892,7 @@ const PracticeTestPage = () => {
         }),
         language_id: languageId,
       };
-      const res = await postData('/translation/translate', payload, true);
+      const res = await postData('translation/translate', payload, true);
       if (res.success) {
         alert('Translation saved successfully!');
         setIsEditingTranslation((prev) => ({
@@ -1041,10 +1041,10 @@ const PracticeTestPage = () => {
     const { images, textContent } = parseParagraphMain(paragraphMain);
     let combinedTranslation = '';
     // Dịch ảnh
-    // if (images.length > 0) {
-    //   const imageTranslation = await fetchImageTranslation(mediaId, languageId);
-    //   combinedTranslation += `**Bản dịch/mô tả ảnh**: ${imageTranslation}\n\n`;
-    // }
+    if (images.length > 0) {
+      const imageTranslation = await fetchImageTranslation(mediaId, languageId);
+      combinedTranslation += `**Bản dịch/mô tả ảnh**: ${imageTranslation}\n\n`;
+    }
     // Dịch văn bản
     if (textContent) {
       const textTranslation = await fetchTextTranslation(textContent, languageId);
@@ -1090,7 +1090,7 @@ const PracticeTestPage = () => {
     if (!isShowing && mediaId && !isNaN(Number(mediaId))) {
       try {
         const res = await fetchData(
-          `/translation/translate?media_id=${mediaId}&question_id=${mediaId}&&language_id=${languageId}`,
+          `translation/translate?media_id=${mediaId}&question_id=${mediaId}&&language_id=${languageId}`,
           true
         );
         if (res.success && res.data) {
@@ -1304,7 +1304,7 @@ const PracticeTestPage = () => {
     if (!isShowing && groupId && !isNaN(Number(groupId))) {
       try {
         const res = await fetchData(
-          `/translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
+          `translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
         if (res.success && res.data) {
@@ -1427,7 +1427,7 @@ const PracticeTestPage = () => {
         language_id: languageId,
       };
 
-      const res = await postData('/translation/translate', payload, true);
+      const res = await postData('translation/translate', payload, true);
 
       if (res.success) {
         setQuestionTranslations((prev) => ({
@@ -1450,7 +1450,7 @@ const PracticeTestPage = () => {
           [questionId]: false,
         }));
         const translationRes = await fetchData(
-          `/translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
+          `translation/translate?media_id=${groupId}&question_id=${questionId}&language_id=${languageId}`,
           true
         );
         if (translationRes.success) {
@@ -1991,13 +1991,7 @@ const PracticeTestPage = () => {
                       </p>
                     )}
                     {role === 'admin' && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '8px',
-                          flexWrap: 'wrap',
-                          marginTop: '8px',
-                        }}>
+                      <div style={{ marginTop: '8px' }}>
                         <button
                           className="translation-toggle-btn"
                           onClick={() =>
@@ -2307,7 +2301,7 @@ const PracticeTestPage = () => {
           status: 'save',
         };
         setIsLoading(true);
-        const res = await postData('/history', savePayload, true);
+        const res = await postData('history', savePayload, true);
         if (res.success) {
           localStorage.setItem(`testProgress-${id}`, JSON.stringify(selectedAnswers));
           localStorage.setItem(`testTime-${id}`, JSON.stringify({ timeLeft, timeLimit: timePick }));
@@ -2336,7 +2330,7 @@ const PracticeTestPage = () => {
       if (confirm || auto === 'auto') {
         // const user = JSON.parse(localStorage.getItem('user'));
         // try {
-        //   await deleteData(`/history/saved?user_id=${user.id}&test_id=${id}`, true);
+        //   await deleteData(`history/saved?user_id=${user.id}&test_id=${id}`, true);
         // } catch (err) {
         //   if (err.message.includes('404')) {
         //     console.log('No saved progress to delete, proceeding with submit.');
@@ -2353,7 +2347,7 @@ const PracticeTestPage = () => {
           status: 'submit',
         };
         setIsLoading(true);
-        const res = await postData('/history', submitPayload, true);
+        const res = await postData('history', submitPayload, true);
         if (res.success) {
           const resultId = res?.data.id;
           sessionStorage.setItem('hasSubmitted', 'true');

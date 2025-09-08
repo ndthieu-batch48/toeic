@@ -672,7 +672,11 @@ const FullTestPage = () => {
         confirm = window.confirm('Do you sure want to submit?');
       }
       if (confirm || auto === 'auto') {
-        const res = await postData('/history', payload, true);
+        const submitPayload = {
+          ...payload,
+          status: 'submit',
+        };
+        const res = await postData('history', submitPayload, true);
         if (res.success) {
           const resultId = res?.data.id;
           sessionStorage.setItem('hasSubmitted', 'true');
