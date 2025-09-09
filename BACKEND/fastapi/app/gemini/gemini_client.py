@@ -1,7 +1,11 @@
 # Document: https://ai.google.dev/gemini-api/docs/quickstart?lang=python
 # Migration from googol-genativeai to gemini-api: https://ai.google.dev/gemini-api/docs/migrate
+import os
 from google import genai
 from ..core.app_config import app_config
+
+os.environ["SSL_CERT_FILE"] = "C:\\cert\\local\\certificate.pem"
+os.environ["SSL_CERT_DIR"] = "C:\\cert\\local" 
 
 gemini_client = genai.Client(api_key=app_config.GEMINI_API_KEY) 
 
@@ -10,7 +14,6 @@ def generate_text_with_gemini(prompt: str):
         model='gemini-2.5-flash',
         contents=prompt
     )
-    
     return response.text
 
 def ask_gemini(prompt: str, language_id: int = 1):
@@ -18,5 +21,4 @@ def ask_gemini(prompt: str, language_id: int = 1):
         model='gemini-2.5-flash',
         contents=prompt
     )
-    
     return response.text
