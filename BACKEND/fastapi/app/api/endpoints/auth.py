@@ -34,9 +34,36 @@ async def register(req: auth_schema.RegisterRequest):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email or Username already taken")
 
             hashed_password = hash_password(req.password)
-            cursor.execute(auth_queries.INSERT_USER, (req.email, req.email, hashed_password))
-                
-            return {"message": "User created successfully"}
+            cursor.execute(auth_queries.INSERT_USER, (req.username, req.email,  hashed_password))
+            
+            user_id = cursor.lastrowid
+            
+            cursor.execute(auth_queries.SELECT_USER_BY_ID, (user_id,))
+            new_user = cursor.fetchone()
+            
+            token_data={
+                    "sub": new_user.get("username"), 
+                    "user_id": new_user.get("id"), 
+                    "role": new_user.get("role")
+                }
+            access_token = create_access_token(token_data)
+            refresh_token = create_refresh_token(token_data)
+            
+            response = auth_schema.UserResponse(
+                id=new_user.get("id"), 
+                email=new_user.get("email"),
+                username=new_user.get("username"), 
+                role=new_user.get("role"),
+                date_joined=new_user.get("date_joined"), 
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_type="bearer",
+            )
+            
+            return {
+                "message": "User created successfully",
+                "user": response
+            }
 
     except HTTPException:
         raise
