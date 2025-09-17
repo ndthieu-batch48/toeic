@@ -45,7 +45,7 @@ const AllUserResultPage = () => {
       if (!user?.id) return;
       setIsLoading(true);
       try {
-        const res = await fetchData(`/history/results?user_id=${user.id}`, true); // ❌ Changed from '/history/get_result' to '/history/results'
+        const res = await fetchData(`history/results?user_id=${user.id}`, true); // ❌ Changed from '/history/get_result' to '/history/results'
         const results = Array.isArray(res) ? res : [];
         setAllResultsData(results);
         setFilteredResults(results);
@@ -73,7 +73,7 @@ const AllUserResultPage = () => {
       for (const result of filteredResults) {
         try {
           const res = await fetchData(
-            `/history/result/detail?history_id=${result.history_id}`,
+            `history/result/detail?history_id=${result.history_id}`,
             true
           ); // ❌ Changed from '/generate_result' to '/history/generate_result'
           updatedPoints[result.history_id] =

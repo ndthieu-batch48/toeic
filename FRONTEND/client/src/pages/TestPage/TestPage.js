@@ -22,7 +22,7 @@ const TestsPage = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const res = await fetchData('/tests');
+        const res = await fetchData('tests');
         const reversedTests = res.reverse();
         setTestData(reversedTests);
         setFilteredTests(reversedTests);

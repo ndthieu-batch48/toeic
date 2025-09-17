@@ -31,13 +31,13 @@ const TestDetailPage = () => {
   useEffect(() => {
     const fetchAPI = async () => {
       try {
-        const tests = await fetchData('/tests');
+        const tests = await fetchData('tests');
         setTestInfo(tests.find((test) => test.id === Number(id)));
 
-        const parts = await fetchData('/tests/part', true);
+        const parts = await fetchData('tests/part', true);
         setPartData(parts);
 
-        const testParts = await fetchData('/tests/testpart');
+        const testParts = await fetchData('tests/testpart');
         setTestPartData(testParts);
       } catch (error) {
         logError('TEST DETAIL PAGE', 'LOGGGG', error);
@@ -84,7 +84,7 @@ const TestDetailPage = () => {
           setHasSavedProgress(null);
           return;
         }
-        const res = await fetchData(`/history/save?test_id=${id}`, true, {
+        const res = await fetchData(`history/save?test_id=${id}`, true, {
           ignoreErrorCodes: [404],
         });
         // Chỉ set hasSavedProgress nếu có bản ghi "Saved" hợp lệ
@@ -193,7 +193,7 @@ const TestDetailPage = () => {
       try {
         // const userState = JSON.parse(localStorage.getItem("userState"));
         if (!userState?.id) return;
-        const res = await fetchData(`/history/save?test_id=${id}`, true);
+        const res = await fetchData(`history/save?test_id=${id}`, true);
         if (res) {
           setHasSavedProgress(res);
         }

@@ -124,30 +124,30 @@ const FullTestPage = () => {
         };
 
         const fetchPromises = [
-          fetchData('/tests/questions', true).then((data) => {
+          fetchData('tests/questions', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests/part', true).then((data) => {
+          fetchData('tests/part', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData(`/tests/${id}/media`, true).then((res) => {
+          fetchData(`tests/${id}/media`, true).then((res) => {
             updateProgress();
             const normalizedGroupMedia = Array.isArray(res) ? res : res?.res || [];
             console.log('Raw /tests/${id}/media response:', res);
             setGroupData(normalizedGroupMedia);
             return normalizedGroupMedia;
           }),
-          fetchData('/tests/answer', true).then((data) => {
+          fetchData('tests/answer', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests/testpart', true).then((data) => {
+          fetchData('tests/testpart', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests', true).then((data) => {
+          fetchData('tests', true).then((data) => {
             updateProgress();
             return data;
           }),
@@ -641,8 +641,8 @@ const FullTestPage = () => {
               <button
                 key={questionId}
                 className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
-                    ? 'active'
-                    : ''
+                  ? 'active'
+                  : ''
                   } ${buttonClass}`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}

@@ -9,7 +9,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import CountdownTimer from '../../components/Countdown/Countdown';
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import { TranslationPrompts } from '../../prompts/prompt';
-import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
+import { sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
 import './PracticeTestPage.css';
 
@@ -239,9 +239,9 @@ const PracticeTestPage = () => {
           }, 1000);
         } else {
           const fetchPromises = [
-            fetchData('/tests/questions', true),
-            fetchData('/tests/part', true),
-            fetchData(`/tests/${id}/media`, true).then((res) => {
+            fetchData('tests/questions', true),
+            fetchData('tests/part', true),
+            fetchData(`tests/${id}/media`, true).then((res) => {
               const normalizedGroupMedia = Array.isArray(res) ? res : res?.res || [];
               setGroupData(normalizedGroupMedia);
               return normalizedGroupMedia;
@@ -681,7 +681,10 @@ const PracticeTestPage = () => {
       if (['Part 1', 'Part 2'].includes(partOrder)) {
         if (isAudioScriptValid) {
           prompt = `Translate the following English audio script into a concise ${targetLanguage} sentence:\n\n${audioScript}`;
-          const scriptTranslation = await sendPromptToBackend(prompt, languageId);
+          // const scriptTranslation = await sendPromptToBackend(prompt, languageId);
+          const payload = { prompt, languageId };
+          const { _success, data } = await postData('gemini/chat', payload, true);
+          const scriptTranslation = data.response.replace(/\\n/g, '\n');
           translation.script = extractTranslationContent(scriptTranslation);
         }
         if (isQuestionContentValid) {
@@ -689,7 +692,10 @@ const PracticeTestPage = () => {
             .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
             .join('\n');
           prompt = `Translate the following English question and its answer choices into ${targetLanguage} in a single block of text, maintaining the structure with the question followed by options labeled A, B, C, D:\n\nQuestion: ${questionContent}\n\nOptions:\n${answerText}`;
-          const questionTranslation = await sendPromptToBackend(prompt, languageId);
+          // const questionTranslation = await sendPromptToBackend(prompt, languageId);
+          const payload = { prompt, languageId };
+          const { _success, data } = await postData('gemini/chat', payload, true);
+          const questionTranslation = data.response.replace(/\\n/g, '\n');
           translation.question = extractTranslationContent(questionTranslation);
         }
       } else if (['Part 3', 'Part 4'].includes(partOrder)) {
@@ -699,7 +705,10 @@ const PracticeTestPage = () => {
             .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
             .join('\n');
           prompt = `Translate the following into ${targetLanguage}, providing separate sections for the audio script and the question with its answer choices. Maintain the structure with the question followed by options labeled A, B, C, D:\n\n**Audio Script**:\n${audioScript}\n\n**Question**:\n${questionContent}\n\n**Options**:\n${answerText}`;
-          const response = await sendPromptToBackend(prompt, languageId);
+          // const response = await sendPromptToBackend(prompt, languageId);
+          const payload = { prompt, languageId };
+          const { _success, data } = await postData('gemini/chat', payload, true);
+          const response = data.response.replace(/\\n/g, '\n');
           const [scriptPart, questionPart] = response.split('**Bản dịch câu hỏi**:') || [
             response,
             '',
@@ -716,7 +725,10 @@ const PracticeTestPage = () => {
             .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
             .join('\n');
           prompt = `Translate the following English question and its answer choices into ${targetLanguage} in a single block of text, maintaining the structure with the question followed by options labeled A, B, C, D:\n\nQuestion: ${questionContent}\n\nOptions:\n${answerText}`;
-          const questionTranslation = await sendPromptToBackend(prompt, languageId);
+          // const questionTranslation = await sendPromptToBackend(prompt, languageId);
+          const payload = { prompt, languageId };
+          const { _success, data } = await postData('gemini/chat', payload, true);
+          const questionTranslation = data.response.replace(/\\n/g, '\n');
           translation = {
             script: '',
             question: extractTranslationContent(questionTranslation),
@@ -730,7 +742,10 @@ const PracticeTestPage = () => {
           .map((ans, index) => `${String.fromCharCode(65 + index)}. ${ans.content}`)
           .join('\n');
         prompt = `Translate the following English question and its answer choices into ${targetLanguage} in a single block of text, maintaining the structure with the question followed by options labeled A, B, C, D:\n\nQuestion: ${questionContent}\n\nOptions:\n${answerText}`;
-        const questionTranslation = await sendPromptToBackend(prompt, languageId);
+        // const questionTranslation = await sendPromptToBackend(prompt, languageId);
+        const payload = { prompt, languageId };
+        const { _success, data } = await postData('gemini/chat', payload, true);
+        const questionTranslation = data.response.replace(/\\n/g, '\n');
         translation = {
           script: '',
           question: extractTranslationContent(questionTranslation),
@@ -1029,7 +1044,10 @@ const PracticeTestPage = () => {
   const fetchTextTranslation = async (text, languageId = 1) => {
     try {
       const prompt = `Translate the following text to ${languageMap[languageId] || 'Vietnamese'}:\n\n${text}`;
-      const translation = await sendPromptToBackend(prompt, languageId);
+      // const translation = await sendPromptToBackend(prompt, languageId);
+      const payload = { prompt, languageId };
+      const { _success, data } = await postData('gemini/chat', payload, true);
+      const translation = data.response.replace(/\\n/g, '\n');
       return translation;
     } catch (error) {
       console.error('Error fetching text translation:', error);
@@ -1173,8 +1191,10 @@ const PracticeTestPage = () => {
         }
         const answerText = answers.map((ans) => `${ans.content}`).join(', ');
         prompt = `Translate the following multiple-choice options ${answerText} of a TOEIC question, marked A, B, C, and D, into ${targetLanguage}. The output should be follow the TOEIC question format. Do not explain anything.`;
-        translation = await sendPromptToBackend(prompt, languageId);
-
+        // translation = await sendPromptToBackend(prompt, languageId);
+        const payload = { prompt, languageId };
+        const { _success, data } = await postData('gemini/chat', payload, true);
+        const translation = data.response.replace(/\\n/g, '\n');
         setQuestionTranslations((prev) => ({
           ...prev,
           [questionId]: {
@@ -1193,8 +1213,10 @@ const PracticeTestPage = () => {
           answerText,
           targetLanguage
         );
-        translation = await sendPromptToBackend(prompt, languageId);
-
+        // translation = await sendPromptToBackend(prompt, languageId);
+        const payload = { prompt, languageId };
+        const { _success, data } = await postData('gemini/chat', payload, true);
+        const translation = data.response.replace(/\\n/g, '\n');
         setQuestionTranslations((prev) => ({
           ...prev,
           [questionId]: { question: translation, answers: [] },

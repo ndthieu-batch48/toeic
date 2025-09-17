@@ -7,7 +7,7 @@ import './ViewResultUserDo.css';
 
 import { useReduxAlert } from '../../hook/useReduxAlert';
 import { useReduxUser } from '../../hook/useReduxUser';
-import { sendPromptToBackend, sendPromptWithImageToBackend } from '../../service/ChatbotAI';
+import { sendPromptWithImageToBackend } from '../../service/ChatbotAI';
 import { fetchData, postData } from '../../service/UserService';
 
 const ViewResultUserDo = () => {
@@ -202,35 +202,35 @@ const ViewResultUserDo = () => {
         };
 
         const fetchPromises = [
-          fetchData('/tests/questions', true).then((data) => {
+          fetchData('tests/questions', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests/part', true).then((data) => {
+          fetchData('tests/part', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData(`/tests/${id}/media`, true).then((res) => {
+          fetchData(`tests/${id}/media`, true).then((res) => {
             updateProgress();
             return res;
           }),
-          fetchData('/tests/answer', false).then((data) => {
+          fetchData('tests/answer', false).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests/testpart', false).then((data) => {
+          fetchData('tests/testpart', false).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests', false).then((data) => {
+          fetchData('tests', false).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/history/all', true).then((data) => {
+          fetchData('history/all', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/languages', true).then((data) => {
+          fetchData('languages', true).then((data) => {
             updateProgress();
             return data;
           }),
@@ -329,7 +329,7 @@ const ViewResultUserDo = () => {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        fetchData('/history/all', true).then((res) => {
+        fetchData('history/all', true).then((res) => {
           // Lọc bài test thuộc về user đã đăng nhập
           const userId = JSON.parse(localStorage.getItem('user'))?.id; // Lấy user ID từ localStorage
           const history = res.find(
@@ -572,7 +572,7 @@ const ViewResultUserDo = () => {
         // Kiểm tra database trước
         try {
           const res = await fetchData(
-            `/translation/translate?media_id=${groupId}&question_id=${groupId}&language_id=${languageId}`,
+            `translation/translate?media_id=${groupId}&question_id=${groupId}&language_id=${languageId}`,
             true
           );
           if (res.success && res.data && res.data.translate_content) {
@@ -610,7 +610,10 @@ const ViewResultUserDo = () => {
           } else if (isPart6or7) {
             console.log('Part 6/7 but no image, translating text only');
             const textPrompt = `Translate this text into ${targetLanguage}: ${paragrapMain || textContent || 'No content to translate'}`;
-            response = await sendPromptToBackend(textPrompt, languageId);
+            // response = await sendPromptToBackend(textPrompt, languageId);
+            const payload = { textPrompt, languageId };
+            const { _success, data } = await postData('gemini/chat', payload, true);
+            const response = data.response.replace(/\\n/g, "\n");
             await handleSaveQuestionTranslation(groupId, groupId, response);
           } else {
             console.log('Not Part 6/7 or no content to translate');
@@ -906,7 +909,10 @@ const ViewResultUserDo = () => {
       if (group?.image_url || group?.paragrap_main?.match(/data:image\/[a-z]+;base64,/)) {
         response = await sendPromptWithImageToBackend(prompt, group.id, languageId);
       } else {
-        response = await sendPromptToBackend(prompt, languageId);
+        // response = await sendPromptToBackend(prompt, languageId);
+        const payload = { prompt, languageId };
+        const { _success, data } = await postData('gemini/chat', payload, true);
+        response = data.response.replace(/\\n/g, "\n");
       }
 
       // Save to database
@@ -947,7 +953,7 @@ const ViewResultUserDo = () => {
     // Kiểm tra database trước
     try {
       const response = await fetchData(
-        `/translation/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
+        `translation/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
         true
       );
       if (
@@ -984,14 +990,20 @@ const ViewResultUserDo = () => {
     try {
       if (audioScript && audioScript !== 'No script available.') {
         const scriptPrompt = `Translate the following English audio script into a concise ${targetLanguage} sentence:\n\n${audioScript}`;
-        translation.script = await sendPromptToBackend(scriptPrompt, languageId);
+        // translation.script = await sendPromptToBackend(scriptPrompt, languageId);
+        const payload = { scriptPrompt, languageId };
+        const { _success, data } = await postData('gemini/chat', payload, true);
+        translation.script = data;
       } else {
         translation.script = 'Không có script để dịch.';
       }
 
       if (questionContent && questionContent !== '' && !/^\d+\.\s*$/.test(questionContent)) {
         const questionPrompt = `Translate the following English question into a concise ${targetLanguage} sentence:\n\n${questionContent}`;
-        translation.question = await sendPromptToBackend(questionPrompt, languageId);
+        // translation.question = await sendPromptToBackend(questionPrompt, languageId);
+        const payload = { questionPrompt, languageId };
+        const { _success, data } = await postData('gemini/chat', payload, true);
+        translation.question = data.response.replace(/\\n/g, "\n");
       } else {
         translation.question = '';
       }
@@ -1085,7 +1097,7 @@ const ViewResultUserDo = () => {
         translate_script: cleanTranslation,
         language_id: languageId,
       };
-      const res = await postData('/translation/translate', payload, true);
+      const res = await postData('translation/translate', payload, true);
       if (res.success) {
         showSuccess('Bản dịch đã được lưu thành công!');
         setIsEditingTranslation((prev) => ({
@@ -1118,7 +1130,7 @@ const ViewResultUserDo = () => {
   const fetchTranslationFromDatabase = async (mediaId, questionId, languageId) => {
     try {
       const response = await fetchData(
-        `/translation/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
+        `translation/translate?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
         true
       );
       if (
@@ -1139,7 +1151,7 @@ const ViewResultUserDo = () => {
   const fetchExplanationFromDatabase = async (questionId, mediaId, languageId) => {
     try {
       const response = await fetchData(
-        `/translation/explain?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
+        `translation/explain?media_id=${mediaId}&question_id=${questionId}&language_id=${languageId}`,
         true
       );
       if (
@@ -1197,7 +1209,7 @@ const ViewResultUserDo = () => {
         explain_question: explanationContent || editedExplanations[questionId],
         language_id: languageId,
       };
-      const res = await postData('/translation/explain', payload, true);
+      const res = await postData('translation/explain', payload, true);
       if (res.success) {
         preserveScrollPosition(() => {
           setIsEditingExplanation((prev) => ({ ...prev, [questionId]: false }));
@@ -1311,7 +1323,10 @@ const ViewResultUserDo = () => {
     try {
       const targetLanguage = languageMap[languageId] || 'Vietnamese';
       const prompt = `Translate the following text to ${targetLanguage}:\n\n${text}`;
-      const translation = await sendPromptToBackend(prompt);
+      // const translation = await sendPromptToBackend(prompt);
+      const payload = { prompt };
+      const { _success, data } = await postData('gemini/chat', payload, true);
+      const translation = data.response.replace(/\\n/g, "\n");
       if (isValidTranslationContent(translation)) {
         return translation;
       } else {
@@ -1391,7 +1406,7 @@ const ViewResultUserDo = () => {
       };
 
       console.log('Saving translation payload:', payload);
-      const res = await postData('/translation/translate', payload, true);
+      const res = await postData('translation/translate', payload, true);
       console.log('Save response:', res);
 
       if (!res.success) {
@@ -1446,7 +1461,7 @@ const ViewResultUserDo = () => {
       console.log('Checking database for image translation...');
       try {
         const res = await fetchData(
-          `/translation/translate?media_id=${mediaId}&question_id=${mediaId}`,
+          `translation/translate?media_id=${mediaId}&question_id=${mediaId}`,
           true
         );
         if (res.success && res.data) {

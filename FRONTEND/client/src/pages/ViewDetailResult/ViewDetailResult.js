@@ -110,29 +110,29 @@ const ViewDetailResult = () => {
         };
 
         const fetchPromises = [
-          fetchData('/tests/questions', true).then((data) => {
+          fetchData('tests/questions', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData('/tests/part', true).then((data) => {
+          fetchData('tests/part', true).then((data) => {
             updateProgress();
             return data;
           }),
-          fetchData(`/tests/${id}/media`, true).then((res) => {
+          fetchData(`tests/${id}/media`, true).then((res) => {
             updateProgress();
             return res;
           }),
-          fetchData('/tests/answer').then((data) => {
+          fetchData('tests/answer').then((data) => {
             // ❌ Changed from '/answer' to '/tests/answer'
             updateProgress();
             return data;
           }),
-          fetchData('/tests/testpart').then((data) => {
+          fetchData('tests/testpart').then((data) => {
             // ❌ Changed from '/testpart' to '/tests/testpart'
             updateProgress();
             return data;
           }),
-          fetchData('/tests').then((data) => {
+          fetchData('tests').then((data) => {
             updateProgress();
             return data;
           }),
@@ -266,7 +266,10 @@ const ViewDetailResult = () => {
     setIsTranslating((prev) => ({ ...prev, [questionId]: true }));
     try {
       const prompt = `Translate the following English audio script into a concise Vietnamese sentence:\n\n${audioScript}`;
-      const translation = await sendPromptToBackend(prompt);
+      // const translation = await sendPromptToBackend(prompt);
+      const payload = { prompt };
+      const { _success, data } = await postData('gemini/chat', payload, true);
+      const translation = data.response.replace(/\\n/g, "\n")
       setEditedTranslations((prev) => ({
         ...prev,
         [questionId]: translation,
@@ -344,7 +347,10 @@ const ViewDetailResult = () => {
 
       // Nếu không có ảnh, gửi prompt văn bản
       console.log('No image found, sending text prompt only');
-      const response = await sendPromptToBackend(prompt);
+      // const response = await sendPromptToBackend(prompt);
+      const payload = { prompt };
+      const { _success, data } = await postData('gemini/chat', payload, true);
+      const response = data.response.replace(/\\n/g, "\n")
       setExplanations((prev) => ({
         ...prev,
         [question.order]: response,
@@ -459,7 +465,7 @@ const ViewDetailResult = () => {
         translate_script: editedTranslations[questionId],
       };
       console.log('Saving payload:', payload);
-      const res = await postData('/translation/translate', payload, true);
+      const res = await postData('translation/translate', payload, true);
       console.log('Save response:', res);
       if (res.success) {
         alert('Translation saved successfully!');
@@ -513,7 +519,7 @@ const ViewDetailResult = () => {
         explain_question: editedExplanations[questionId],
       };
       console.log('Saving explanation payload:', payload);
-      const res = await postData('/translation/explain', payload, true);
+      const res = await postData('translation/explain', payload, true);
       console.log('Save explanation response:', res);
       if (res.data.message === 'Explanation updated successfully') {
         alert('Explanation saved successfully!');
@@ -925,8 +931,8 @@ const ViewDetailResult = () => {
               <button
                 key={questionId}
                 className={`question-number ${isAnswered ? 'answered' : ''} ${selectedPart === part && filteredQuestions.some((q) => q.id === questionId)
-                    ? 'active'
-                    : ''
+                  ? 'active'
+                  : ''
                   }`}
                 onClick={() => handleScrollToQuestion(questionId)}>
                 {questionId}
