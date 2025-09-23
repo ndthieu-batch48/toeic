@@ -11,3 +11,16 @@ GET_PART_IDS_FOR_TEST = """
     JOIN toeicapp_part p ON tp.part_id = p.id 
     WHERE tp.test_id = %s
 """
+
+
+SELECT_QUESTION_BLOCK_JSON_BY_ID = """
+    SELECT JSON_OBJECT(
+        'question_id', q.id,
+        'question_content', q.content,
+        'answer_list', JSON_ARRAYAGG(a.content)
+    ) AS question_block_json
+    FROM toeicapp_question q
+    JOIN toeicapp_answer a ON a.question_id = q.id
+    WHERE q.id = %s
+    GROUP BY q.id, q.content;
+"""
