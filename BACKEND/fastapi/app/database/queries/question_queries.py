@@ -48,3 +48,15 @@ def select_count_question_by_multiple_part(part_orders):
         WHERE test_id = %s
         AND p.part_order IN ({placeholders});
     """
+
+
+def select_count_question_by_multiple_part_v2(part_ids):
+    placeholders = ", ".join(["%s"] * len(part_ids))
+    return f"""
+        SELECT COUNT(q.id) AS question_by_multiple_part_count
+        FROM toeicapp_testpart tp
+        JOIN toeicapp_part p ON tp.part_id = p.id
+        JOIN toeicapp_question q ON tp.part_id = q.part_id
+        WHERE test_id = %s
+        AND p.id IN ({placeholders});
+    """

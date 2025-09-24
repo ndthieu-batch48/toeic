@@ -2,9 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List, Optional
 import json
 
-from fastapi.responses import JSONResponse
-
-from ...schemas.history import HistoryResponse, HistoryCreateRequest, HistoryResultDetailResponse, HitoryResultListResponse
+from ...schemas.history import HistoryResponse, HistoryCreateRequest, HistoryResultDetailResponse, HitoryResultListResponse, HistoryResultDetailResponseV1
 from ...auth.dependencies import get_current_user
 from ...database.connection import get_db_cursor
 from ...database.queries import (
@@ -19,8 +17,8 @@ from ...database.queries import (
     SELECT_SUBMIT_HISTORY_BY_USER,
     SELECT_COUNT_QUESTION_BY_TEST, 
     GET_TITLE_OF_TEST,
+    select_count_question_by_multiple_part_v2,
     select_count_question_by_multiple_part,
-    select_count_correct_incorrect_by_answer_id
 )
 
 
@@ -119,7 +117,7 @@ async def get_save_progress_history(test_id: int, current_user: dict = Depends(g
         )
 
 
-@router.get("/result/list", response_model=Optional[List[HitoryResultListResponse]])
+@router.get("/result/list", response_model=Optional[List[HistoryResultDetailResponse]])
 async def get_result_list(current_user: dict = Depends(get_current_user)):
     try:
         user_id = current_user.get("user_id")
@@ -178,6 +176,7 @@ async def get_result_list(current_user: dict = Depends(get_current_user)):
                     "testname": testname,
                     "score": score,
                     "part_list": part
+                    
                 })
 
         return results
@@ -192,7 +191,7 @@ async def get_result_list(current_user: dict = Depends(get_current_user)):
         )
 
 
-@router.get("/result/detail", response_model=HistoryResultDetailResponse)
+@router.get("/result/detail", response_model=HistoryResultDetailResponseV1)
 async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)):
     try:
         with get_db_cursor() as cursor:
@@ -210,7 +209,6 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             test_type = history.get("type")
             create_at = history.get("create_at")
             duration = history.get("time")
-            dataprogress = history.get("dataprogress")
             
             # Handle question count
             total_question = 0
@@ -249,8 +247,7 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             "no_answer": no_answer,
             "accuracy": round(accuracy, 2),
             "create_at": create_at,
-            "duration": duration,
-            "dataprogress": dataprogress,
+            "duration": duration
         }
 
     except HTTPException:
@@ -264,3 +261,151 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             }
         )
 
+
+
+@router.get("/v2/result/list", response_model=Optional[List[HitoryResultListResponse]])
+async def get_result_list_v2(current_user: dict = Depends(get_current_user)):
+    try:
+        user_id = current_user.get("user_id")
+        with get_db_cursor() as cursor:
+            cursor.execute(SELECT_SUBMIT_HISTORY_BY_USER, (user_id,))
+            submit_history_list = cursor.fetchall()
+            
+            
+            if not submit_history_list:
+                return []
+            
+            results = []
+            for history in submit_history_list:
+
+                # Prepare data
+                history_id = history.get("id")
+                part_id_list = json.loads(history.get("part"))
+                test_id = history.get("test_id")
+                test_type = history.get("type")
+                create_at = history.get("create_at")
+                duration = history.get("time")
+                
+                # Get test info
+                cursor.execute(GET_TITLE_OF_TEST, (test_id,))
+                row = cursor.fetchone()
+                testname = row.get("title")
+                
+                # Handle question count
+                total_question = 0
+                if test_type == "FullTest":
+                    # FullTest: count toàn bộ câu hỏi theo test_id
+                    cursor.execute(SELECT_COUNT_QUESTION_BY_TEST, (test_id,))
+                    row = cursor.fetchone()
+                    total_question = row.get("question_by_test_count")
+                elif test_type == "Practice":
+                    # PracticeTest: count theo danh sách part_orders
+                    part_ids = [str(p) for p in part_id_list]
+                    query = select_count_question_by_multiple_part_v2(part_ids)
+                    cursor.execute(query, (test_id, *part_ids))
+                    row = cursor.fetchone()
+                    total_question = row.get("question_by_multiple_part_count")
+                
+                # Handle calculating result
+                cursor.execute(SELECT_CALCULATE_CORRECT_ANSWER_BY_HISTORY_ID, (history_id,))
+                row = cursor.fetchone()
+                correct_count = row.get("correct_count")
+                score = f"{correct_count}/{total_question}" if total_question > 0 else "0/0"
+
+                # Append result for this history
+                results.append({
+                    "history_id": history_id,
+                    "test_id": test_id,
+                    "test_type": test_type,
+                    "create_at": create_at,
+                    "duration": duration,
+                    "testname": testname,
+                    "score": score,
+                    "part_list": part_id_list
+                })
+
+        return results
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "message": "Error in get result list controller",
+                "error": str(e),
+            },
+        )
+
+
+@router.get("/v2/result/detail", response_model=HistoryResultDetailResponse)
+async def get_result_detail_v2(history_id: int, _: dict = Depends(get_current_user)):
+    try:
+        with get_db_cursor() as cursor:
+            cursor.execute(SELECT_HISTORY_BY_ID, (history_id,))
+            history = cursor.fetchone()
+            if not history: 
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User history not found"
+                )
+            
+            # Prepare data
+            part_id_list = json.loads(history.get("part"))
+            test_id = history.get("test_id")
+            test_type = history.get("type")
+            create_at = history.get("create_at")
+            duration = history.get("time")
+            dataprogress = history.get("dataprogress")
+            
+            # Handle question count
+            total_question = 0
+            # FullTest: count toàn bộ câu hỏi theo test_id
+            if test_type == "FullTest":
+                cursor.execute(SELECT_COUNT_QUESTION_BY_TEST, (test_id,))
+                row = cursor.fetchone()
+                total_question = row.get("question_by_test_count")
+            # # PracticeTest: count theo danh sách part_orders
+            elif test_type == "Practice":
+                # PracticeTest: count theo danh sách part_orders
+                part_ids = [str(p) for p in part_id_list]
+                query = select_count_question_by_multiple_part_v2(part_ids)
+                cursor.execute(query, (test_id, *part_ids))
+                row = cursor.fetchone()
+                total_question = row.get("question_by_multiple_part_count")
+
+            # Handle calculating result
+            cursor.execute(SELECT_CALCULATE_DATAPROGRESS_RESULT_BY_HISTORY_ID, (history_id,))
+            row = cursor.fetchone()
+            correct_count = row.get("correct_count")
+            incorrect_count = row.get("incorrect_count")
+            correct_listening = row.get("correct_listening")
+            correct_reading = row.get("correct_reading")
+            
+            total_answer = incorrect_count + correct_count
+            no_answer = total_question - total_answer
+            accuracy = (correct_count / total_answer) * 100 if total_answer > 0 else 0
+        
+        return {
+            "test_type": test_type, 
+            "total_question": total_question,
+            "correct_count": correct_count, 
+            "incorrect_count": incorrect_count,
+            "correct_listening": correct_listening,
+            "correct_reading": correct_reading,
+            "no_answer": no_answer,
+            "accuracy": round(accuracy, 2),
+            "create_at": create_at,
+            "duration": duration,
+            "dataprogress": dataprogress,
+            "part_list": part_id_list
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "message": "Error in get result detail controller",
+                "error": {e}
+            }
+        )

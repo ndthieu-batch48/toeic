@@ -25,6 +25,17 @@ class HistoryCreateRequest(BaseModel):
     status: Literal["save", "submit"] = "save"
     time_left: Optional[int] = 0
 
+class HistoryResultDetailResponseV1(BaseModel):
+    total_question: int
+    test_type: str
+    correct_count: int
+    incorrect_count: int
+    correct_listening: int
+    correct_reading: int
+    no_answer: int
+    accuracy: float
+    create_at: datetime
+    duration: int
 
 class HistoryResultDetailResponse(BaseModel):
     total_question: int
@@ -38,6 +49,7 @@ class HistoryResultDetailResponse(BaseModel):
     create_at: datetime
     duration: int
     dataprogress: Json[Dict[str, str]]
+    part_list: List[str]
 
 
 class HitoryResultListResponse(BaseModel):
