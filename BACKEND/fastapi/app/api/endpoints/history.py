@@ -178,7 +178,6 @@ async def get_result_list(current_user: dict = Depends(get_current_user)):
                     "testname": testname,
                     "score": score,
                     "part_list": part
-                    
                 })
 
         return results
@@ -211,6 +210,7 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             test_type = history.get("type")
             create_at = history.get("create_at")
             duration = history.get("time")
+            dataprogress = history.get("dataprogress")
             
             # Handle question count
             total_question = 0
@@ -249,7 +249,8 @@ async def get_result_detail(history_id: int, _: dict = Depends(get_current_user)
             "no_answer": no_answer,
             "accuracy": round(accuracy, 2),
             "create_at": create_at,
-            "duration": duration
+            "duration": duration,
+            "dataprogress": dataprogress,
         }
 
     except HTTPException:

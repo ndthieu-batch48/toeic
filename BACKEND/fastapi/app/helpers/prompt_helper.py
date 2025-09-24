@@ -1,13 +1,20 @@
-def getLanguageById(langId: int):
-    match langId:
-        case 0:
-            return "Vietnamese"
-        case 1:
-            return "Japanese"
-        case 2:
-            return "English"
-        case _:  # Default case
-            return "Vietnamese"
+LANGUAGE_MAP = {
+    "vi": "Vietnamese",
+    "ja": "Japanese", 
+    "en": "English",
+}
+
+def getLanguageById(langId):
+    """
+    Get language name by language ID or code.
+    
+    Args:
+        langId: Language code (str)
+        
+    Returns:
+        str: Language name, defaults to Vietnamese if not found
+    """
+    return LANGUAGE_MAP.get(langId, "Vietnamese")
 
 
 def build_question_translation_prompt(question_block_json, language_id):

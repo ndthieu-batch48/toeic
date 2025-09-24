@@ -1,5 +1,9 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_validator
+from typing import Optional, Literal
+from app.helpers.prompt_helper import LANGUAGE_MAP
+
+# Define valid language codes based on LANGUAGE_MAP
+LanguageCode = Literal["vi", "ja", "en"]
 
 
 class TranslateScriptUpdate(BaseModel):
@@ -21,14 +25,35 @@ class TranslateQuestionResponse(BaseModel):
     question_id: int
     question_content: str
     answer_list: list[str]
-    language_id: int
+    language_id: LanguageCode
+    
+    @field_validator('language_id')
+    @classmethod
+    def validate_language_id(cls, v):
+        if v not in LANGUAGE_MAP:
+            raise ValueError(f'Invalid language code. Must be one of: {list(LANGUAGE_MAP.keys())}')
+        return v
 
 
 class TranslateQuestionRequest(BaseModel):
     question_id: int
-    language_id: int
+    language_id: LanguageCode
+    
+    @field_validator('language_id')
+    @classmethod
+    def validate_language_id(cls, v):
+        if v not in LANGUAGE_MAP:
+            raise ValueError(f'Invalid language code. Must be one of: {list(LANGUAGE_MAP.keys())}')
+        return v
 
 
 class TranslateImageRequest(BaseModel):
     media_id: int
-    language_id: int
+    language_id: LanguageCode
+    
+    @field_validator('language_id')
+    @classmethod
+    def validate_language_id(cls, v):
+        if v not in LANGUAGE_MAP:
+            raise ValueError(f'Invalid language code. Must be one of: {list(LANGUAGE_MAP.keys())}')
+        return v

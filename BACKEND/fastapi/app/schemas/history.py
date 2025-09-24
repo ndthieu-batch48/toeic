@@ -37,6 +37,7 @@ class HistoryResultDetailResponse(BaseModel):
     accuracy: float
     create_at: datetime
     duration: int
+    dataprogress: Json[Dict[str, str]]
 
 
 class HitoryResultListResponse(BaseModel):
